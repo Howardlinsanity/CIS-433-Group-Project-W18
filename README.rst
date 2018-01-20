@@ -12,7 +12,7 @@ Open Source tools used (or plan to use):
 Go to `Read the Docs <https://fbchat.readthedocs.io>`__ to see the full documentation,
 or jump right into the code by viewing the `examples <examples>`__
 
-Installation:
+Installation
 ----------
 
 .. code-block:: console
