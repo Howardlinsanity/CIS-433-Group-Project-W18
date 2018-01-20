@@ -11,7 +11,8 @@ Our Proposed Solution
 ----------
 We propose an encryption solution that guarantees the private integrity of messages. We will build a desktop application that connects to the facebook API that encrypts outgoing messages and decrypts incoming messages. A text message viewed through the app will be unciphered, but if a attacker was to view your Facebook messenger history, they would only see cypher text.
 
-Open Source tools used (or plan to use):
+Open Source tools used (or plan to use)
+----------
 - `fbchat for python <https://github.com/carpedm20/fbchat>`__
 Go to `Read the Docs <https://fbchat.readthedocs.io>`__ to see the full documentation,
 or jump right into the code by viewing the `examples <examples>`__
