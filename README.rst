@@ -13,6 +13,7 @@ Go to `Read the Docs <https://fbchat.readthedocs.io>`__ to see the full document
 or jump right into the code by viewing the `examples <examples>`__
 
 Installation:
+----------
 
 .. code-block:: console
 
