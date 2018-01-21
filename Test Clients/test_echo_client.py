@@ -2,6 +2,7 @@
 
 from fbchat import log, Client
 
+
 # Subclass fbchat.Client and override required methods
 class EchoBot(Client):
     def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
