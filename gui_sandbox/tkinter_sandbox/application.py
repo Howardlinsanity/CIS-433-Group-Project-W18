@@ -1,13 +1,14 @@
 import os
 import time
 import threading
-from tkinter         import Tk, Frame, RIGHT, BOTH, RAISED
-from tkinter         import TOP, X, N, LEFT, messagebox
-from tkinter         import END, Listbox, MULTIPLE
-from tkinter         import Toplevel, DISABLED
-from tkinter         import ACTIVE, filedialog, NORMAL
-from tkinter.ttk     import Style, Button, Label, Entry
-from tkinter.ttk     import Progressbar, Checkbutton
+import tkMessageBox
+import tkFileDialog
+from ttk             import Style, Button, Label, Entry, Progressbar, Checkbutton
+from Tkinter         import Tk, Frame, RIGHT, BOTH, RAISED
+from Tkinter         import TOP, X, N, LEFT
+from Tkinter         import END, Listbox, MULTIPLE
+from Tkinter         import Toplevel, DISABLED
+from Tkinter         import ACTIVE, NORMAL
 from multiprocessing import Queue
 
 class GUI(Frame):
