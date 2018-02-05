@@ -105,7 +105,7 @@ class GUI(Frame):
         passwordLabel = Label(passwordFrame, text="Password:", background="white")
         passwordLabel.pack(side=LEFT, padx = 15, pady=10)
 
-        self.passwordEntry = Entry(passwordFrame, width=30)
+        self.passwordEntry = Entry(passwordFrame, show="*", width=30)
         self.passwordEntry.insert(0, self.password)
         self.passwordEntry.pack(side=LEFT, padx=35, pady=10)
         # Done with password frame
