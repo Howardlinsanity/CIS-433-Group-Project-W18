@@ -16,7 +16,7 @@ class GUI(Frame):
         This is the root window
     '''
 
-    def __init__(self, parent):
+    def __init__(self, parent, client):
         self.email = ""
         self.password = ""
         self.parent = parent
@@ -24,6 +24,7 @@ class GUI(Frame):
         self.loadWindow  = None
         self.remember    = False
         self.loginScreen()
+        self.client = client
 
     def centerWindow(self,notself=None):
         '''
