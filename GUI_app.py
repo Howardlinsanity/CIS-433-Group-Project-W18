@@ -182,6 +182,7 @@ if __name__ == "__main__":
 
     # make calls to api to load GUI with relavent information
 
+    root.mainloop()
     # while (not done):
         # check if new message on current conversation
         # if new message:
@@ -189,6 +190,5 @@ if __name__ == "__main__":
 
         # wait n units of time
 
-    root.mainloop()
     root.destroy()
 
