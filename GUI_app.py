@@ -167,11 +167,28 @@ class ThreadedTask(threading.Thread):
         self.function()
 
 if __name__ == "__main__":
-    root = Tk()
-    root.resizable(width=False, height=False)
-
+    # create client
     client = client.Client("bel@cs.uoregon.edu", "Bob433")
 
+    # connect to DB
+
+    # appPubKey =
+    # appPrivKey =
+
+    # create GUI
+    root = Tk()
+    root.resizable(width=False, height=False)
     ex = GUI(root, client)
+
+    # make calls to api to load GUI with relavent information
+
+    # while (not done):
+        # check if new message on current conversation
+        # if new message:
+            # update view
+
+        # wait n units of time
+
     root.mainloop()
     root.destroy()
+
