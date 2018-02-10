@@ -18,8 +18,6 @@ def main():
 
     client.listen()
 
-    print("past listen")
-
     # start DB (if can be started from python)
 
     # connect to DB
@@ -27,7 +25,13 @@ def main():
     # appPubKey =
     # appPrivKey =
 
-    # start GUI, give client ref
+    # create GUI
+    # ex = GUI(root)
+
+    # make calls to api to load GUI
+
+    # while (not done):
+        #
 
 
 

@@ -7,7 +7,7 @@ This function ensures that only Bill, using k PRIV-B, can remove the encryption 
 that only Amy could have applied k PRIV-A that Bill removes with k PUB-A.
 """
 
-from fbchat import log, Client
+from fbchat import log, client
 import logging
 import fbchat.models
 
