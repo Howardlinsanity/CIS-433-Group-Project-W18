@@ -27,3 +27,17 @@ def decrypt(cyphertext, key):
     plaintext = ""
 
     return plaintext
+
+
+def genPubPriv(userName, pwd, phrase):
+    """
+    takes 3 strings, generates a pub, priv key pair
+    :param userName:
+    :param pwd:
+    :param phrase:
+    :return:
+    """
+    pub, priv = (0, 0)
+
+
+    return pub, priv
