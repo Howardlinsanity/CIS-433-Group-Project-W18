@@ -18,14 +18,15 @@ class GUI(Frame):
     '''
 
     def __init__(self, parent, client):
+        self.queue = Queue()
         self.email = ""
         self.password = ""
         self.parent = parent
         self.initialized = False
         self.loadWindow  = None
         self.remember    = False
+        self.client = None
         self.loginScreen()
-        self.client = client
 
     def centerWindow(self,notself=None):
         '''
@@ -124,7 +125,14 @@ class GUI(Frame):
         # Done with bottom buttons
 
     def login(self):
-        return 0
+        if(self.client is not None):
+            if(self.client.isLoggedIn()):
+                self.client.logout()
+        self.email = self.emailEntry.get()
+        self.password = self.passwordEntry.get()
+
+        self.client = client.Client(self.email, self.password)
+        print(self.client.fetchAllUsers())
 
     def checkThread(self,thread,function):
         '''
@@ -167,9 +175,6 @@ class ThreadedTask(threading.Thread):
         self.function()
 
 if __name__ == "__main__":
-    # create client
-    client = client.Client("bel@cs.uoregon.edu", "Bob433")
-
     # connect to DB
 
     # appPubKey =
