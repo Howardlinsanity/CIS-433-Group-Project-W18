@@ -10,6 +10,7 @@ from Tkinter         import END, Listbox, MULTIPLE
 from Tkinter         import Toplevel, DISABLED
 from Tkinter         import ACTIVE, NORMAL
 from multiprocessing import Queue
+from fbchat          import log, client
 
 class GUI(Frame):
     '''
@@ -169,6 +170,8 @@ if __name__ == "__main__":
     root = Tk()
     root.resizable(width=False, height=False)
 
-    ex = GUI(root)
+    client = client.Client("bel@cs.uoregon.edu", "Bob433")
+
+    ex = GUI(root, client)
     root.mainloop()
     root.destroy()
