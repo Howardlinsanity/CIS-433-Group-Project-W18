@@ -132,7 +132,11 @@ class GUI(Frame):
         self.password = self.passwordEntry.get()
 
         self.client = client.Client(self.email, self.password)
-        print(self.client.fetchAllUsers())
+        users = self.client.fetchAllUsers()
+        for user in users:
+            print(user.name, user.uid)
+            print(self.client.fetchThreadMessages(user.uid))
+
 
     def checkThread(self,thread,function):
         '''
