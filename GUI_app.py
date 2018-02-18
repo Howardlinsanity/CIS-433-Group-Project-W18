@@ -19,8 +19,10 @@ class GUI(Frame):
 
     def __init__(self, parent, client):
         self.queue = Queue()
-        self.email = ""
-        self.password = ""
+        # I got sick of filling in the login parameters repeatedly,
+        # for the sake of testing I will leave it like this and clear it before finishing the gui
+        self.email = "bel@cs.uoregon.edu"
+        self.password = "Bob433"
         self.parent = parent
         self.initialized = False
         self.loadWindow  = None
@@ -132,7 +134,13 @@ class GUI(Frame):
         self.password = self.passwordEntry.get()
 
         self.client = client.Client(self.email, self.password)
-        print(self.client.fetchAllUsers())
+        users = self.client.fetchAllUsers()
+        for user in users:
+            print(user.name, user.uid)
+            messages = self.client.fetchThreadMessages(user.uid)
+            for message in messages:
+                print(self.client._fetchInfo(message.author)[message.author]["first_name"], ":", message.text)
+
 
     def checkThread(self,thread,function):
         '''
