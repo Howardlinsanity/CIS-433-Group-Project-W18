@@ -112,6 +112,7 @@ class GUI(Frame):
         passwordLabel.pack(side=LEFT, padx = 15, pady=10)
 
         self.passwordEntry = Entry(passwordFrame, show="*", width=30)
+        self.passwordEntry.bind("<Return>", self.start)
         self.passwordEntry.insert(0, self.password)
         self.passwordEntry.pack(side=LEFT, padx=35, pady=10)
         # Done with password frame
@@ -184,34 +185,46 @@ class GUI(Frame):
         '''
             Chat GUI page
         '''
-        self.h = 400
+        self.h = 350
         self.w = 700
         self.resetWindow()
         self.parent.title("Messenger")
 
-        messages_frame = Frame(self)
+        # We make the chat side of the UI
+        self.right_frame = Frame(self)
+        self.right_frame.pack(side=RIGHT, fill='y')
+        self.messages_frame = Frame(self.right_frame)
+        self.messages_frame.pack(side=TOP)
 
-        my_msg = StringVar() # For messages to be sent.
-        my_msg.set("Type your messages HERE")
+        self.my_msg = StringVar() # For messages to be sent.
+        self.my_msg.set("")
 
-        scrollbar = Scrollbar(messages_frame) # Navigate through past messages
+        self.msg_scrollbar = Scrollbar(self.messages_frame) # Navigate through past messages
 
         # Following will contain the messages
 
-        msg_list = Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
-        scrollbar.config(command = msg_list.yview)
-        scrollbar.pack(side=RIGHT, fill='y')
-        msg_list.pack(side=LEFT, fill=BOTH)
-        msg_list.pack()
-        messages_frame.pack()
+        self.msg_list = Listbox(self.messages_frame, height=15, width=50, yscrollcommand=self.msg_scrollbar.set)
+        self.msg_scrollbar.config(command = self.msg_list.yview)
+        self.msg_scrollbar.pack(side=RIGHT, fill='y', padx=5)
+        self.msg_list.pack(side=RIGHT)
 
-        entry_field = Entry(self, textvariable=my_msg)
-        entry_field.bind("<Return>", self.send)
-        entry_field.pack()
-        exitButton = Button(self, text="Exit", command=self.parent.destroy)
-        exitButton.pack(side=RIGHT, padx=5, pady=5)
-        send_button = Button(self, text="Send", command=self.send)
-        send_button.pack(side=RIGHT)
+        self.entry_field = Entry(self.right_frame, textvariable=self.my_msg)
+        self.send_button = Button(self.right_frame, text="Send", command=self.send)
+        self.entry_field.pack(side="top", fill=X, padx=5, pady=5)
+        self.send_button.pack(side="top")
+
+        self.exitButton = Button(self.right_frame, text="Exit", command=self.parent.destroy)
+        self.exitButton.pack(side="bottom", padx=5, pady=5)
+
+        # We make the the side that contains the other users.
+        self.left_frame = Frame(self)
+        self.left_frame.pack(side=LEFT, fill='y')
+
+        self.usr_scrollbar = Scrollbar(self.left_frame)
+        self.usr_list = Listbox(self.left_frame, height=15, width=50, yscrollcommand=self.usr_scrollbar.set)
+        self.usr_scrollbar.config(command = self.usr_list.yview)
+        self.usr_scrollbar.pack(side=RIGHT, fill='y', padx=5)
+        self.usr_list.pack(side=RIGHT, fill='y')
 
     def send(self):
         return 0
