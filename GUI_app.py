@@ -13,14 +13,14 @@ from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
 
-# ecryption
+# encryption
 import Encrypt
 
 
 class GUI(Frame):
-    '''
+    """
         This is the root window
-    '''
+    """
 
     def __init__(self, parent, client):
         self.queue = Queue()
@@ -36,16 +36,16 @@ class GUI(Frame):
         self.loginScreen()
 
     def centerWindow(self,notself=None):
-        '''
+        """
         This centers the window into place
         if notself is set, then it centers
         the notself window
 
         @param:
             notself - TKobject
-        '''
+        """
 
-        if notself != None: #notself is primarly for progressbar
+        if notself != None: # notself is primarly for progressbar
             sw = self.parent.winfo_screenwidth()
             sh = self.parent.winfo_screenheight()
             x = (sw - self.w/2) / 2
@@ -59,10 +59,10 @@ class GUI(Frame):
             self.parent.geometry('%dx%d+%d+%d' % (self.w,self.h, x ,y))
 
     def startWindow(self):
-        '''
+        """
         This method starts/creates the window for
         the UI
-        '''
+        """
         Frame.__init__(self, self.parent, background="white")
         self.style = Style()
         self.style.theme_use("default")
@@ -74,9 +74,9 @@ class GUI(Frame):
         self.initialized = True
 
     def resetWindow(self):
-        '''
+        """
         Resets the window
-        '''
+        """
         if(self.initialized):
             self.destroy()
         if(self.loadWindow != None):
@@ -86,9 +86,9 @@ class GUI(Frame):
 
 
     def loginScreen(self):
-        '''
+        """
             First screen that user will see, will require Facebook credentials to be inputted
-        '''
+        """
 
         # Resetting window
         self.h = 150
@@ -132,9 +132,9 @@ class GUI(Frame):
         # Done with bottom buttons
 
     def start(self):
-        '''
+        """
             Initiates login, starts loading screen.
-        '''
+        """
         thread1 = ThreadedTask(self.queue,self.login)
         thread2 = ThreadedTask(self.queue,self.loadingScreen)
         thread2.start()
@@ -143,10 +143,10 @@ class GUI(Frame):
         self.checkThread(thread1,self.chatUI)
 
     def loadingScreen(self):
-        '''
+        """
         This starts the loading screen
         and disables all buttons
-        '''
+        """
         for i in self.winfo_children():
             if Button == type(i):
                 i.configure(state=DISABLED)
@@ -164,9 +164,9 @@ class GUI(Frame):
         progressbar.start()
 
     def login(self):
-        '''
+        """
             Login with the inputted credentials from the loginScreen
-        '''
+        """
         if(self.client is not None):
             if(self.client.isLoggedIn()):
                 self.client.logout()
@@ -185,9 +185,9 @@ class GUI(Frame):
         #         print(self.client._fetchInfo(message.author)[message.author]["first_name"], message.text)
 
     def chatUI(self):
-        '''
+        """
             Chat GUI page
-        '''
+        """
         self.h = 400
         self.w = 700
         self.resetWindow()
@@ -220,9 +220,7 @@ class GUI(Frame):
     def send(self):
         return 0
 
-
-
-        # # Creating frame that takes in email
+        # Creating frame that takes in email
         # emailFrame = Frame(self)
         # emailFrame.pack(fill=X, side=TOP)
 
@@ -236,7 +234,7 @@ class GUI(Frame):
 
 
     def checkThread(self,thread,function):
-        '''
+        """
         This function checks to see if
         the given thread is dead, if it
         is not, it recalls a new checkThread.
@@ -246,7 +244,7 @@ class GUI(Frame):
         @param:
             thread   - ThreadedTask
             functoin - a function
-        '''
+        """
         if thread.is_alive():
             self.parent.after(1000, lambda: self.checkThread(thread,function))
         else:
@@ -254,25 +252,25 @@ class GUI(Frame):
 
 
 class ThreadedTask(threading.Thread):
-    '''
+    """
     Used for creating a threaded task
-    '''
+    """
     def __init__(self,queue,function):
-        '''
+        """
         Starts the threaded task
 
         @param:
             queue    - Queue object
             function - a function
-        '''
+        """
         threading.Thread.__init__(self)
         self.queue    = queue
         self.function = function
 
     def run(self):
-        '''
+        """
         Runs the function
-        '''
+        """
         self.function()
 
 if __name__ == "__main__":
