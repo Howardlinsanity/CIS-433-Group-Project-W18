@@ -18,14 +18,17 @@ class GUI(Frame):
     '''
 
     def __init__(self, parent, client):
-        self.email = ""
-        self.password = ""
+        self.queue = Queue()
+        # I got sick of filling in the login parameters repeatedly,
+        # for the sake of testing I will leave it like this and clear it before finishing the gui
+        self.email = "bel@cs.uoregon.edu"
+        self.password = "Bob433"
         self.parent = parent
         self.initialized = False
         self.loadWindow  = None
         self.remember    = False
+        self.client = None
         self.loginScreen()
-        self.client = client
 
     def centerWindow(self,notself=None):
         '''
@@ -124,7 +127,20 @@ class GUI(Frame):
         # Done with bottom buttons
 
     def login(self):
-        return 0
+        if(self.client is not None):
+            if(self.client.isLoggedIn()):
+                self.client.logout()
+        self.email = self.emailEntry.get()
+        self.password = self.passwordEntry.get()
+
+        self.client = client.Client(self.email, self.password)
+        users = self.client.fetchAllUsers()
+        for user in users:
+            print(user.name, user.uid)
+            messages = self.client.fetchThreadMessages(user.uid)
+            for message in messages:
+                print(self.client._fetchInfo(message.author)[message.author]["first_name"], ":", message.text)
+
 
     def checkThread(self,thread,function):
         '''
@@ -167,9 +183,6 @@ class ThreadedTask(threading.Thread):
         self.function()
 
 if __name__ == "__main__":
-    # create client
-    client = client.Client("bel@cs.uoregon.edu", "Bob433")
-
     # connect to DB
 
     # appPubKey =
@@ -182,6 +195,7 @@ if __name__ == "__main__":
 
     # make calls to api to load GUI with relavent information
 
+    root.mainloop()
     # while (not done):
         # check if new message on current conversation
         # if new message:
@@ -189,6 +203,5 @@ if __name__ == "__main__":
 
         # wait n units of time
 
-    root.mainloop()
     root.destroy()
 
