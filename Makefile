@@ -39,16 +39,16 @@ freeze:
 	(pip freeze | grep -v "pkg-resources" > requirements.txt) || true
 
 run:	env
+	$(INVENV) mongod &
 	($(INVENV) python2 GUI_app.py) ||  true
 
 jamie: env
-	mongod &
+	$(INVENV) mongod &
 	$(INVENV) python2 demos/mongoup.py
 	$(INVENV) python2 demos/trial_db.py
+
+uninstall:
 	$(INVENV) python2 demos/destroy_db.py
-	$(INVENV) python2 demos/trial_db.py
-
-
 # Run server in background. Be comfortable with killing processes to kill the server before running in background
 background: env
 	($(INVENV) python2 gui_sandbox/tkinter_sandbox/GUI_app.py) &
