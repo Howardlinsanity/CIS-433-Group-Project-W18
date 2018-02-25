@@ -123,9 +123,41 @@ class GUI(Frame):
 
         exitButton = Button(self, text="Exit", command=self.parent.destroy)
         exitButton.pack(side=RIGHT, padx=5, pady=5)
-        self.loginButton = Button(self, text="Log In", command=self.login)
+        self.loginButton = Button(self, text="Log In", command=self.start)
         self.loginButton.pack(side=RIGHT)
         # Done with bottom buttons
+
+    def start(self):
+        '''
+            Initiates login, starts loading screen.
+        '''
+        thread1 = ThreadedTask(self.queue,self.login)
+        thread2 = ThreadedTask(self.queue,self.loadingScreen)
+        thread2.start()
+        thread1.start()
+
+        self.checkThread(thread1,self.chatUI)
+
+    def loadingScreen(self):
+        '''
+        This starts the loading screen
+        and disables all buttons
+        '''
+        for i in self.winfo_children():
+            if Button == type(i):
+                i.configure(state=DISABLED)
+
+        self.loadWindow = Toplevel(self.parent)
+        loadingstring   = "Logging in..."
+        loadinglabel    = Label(self.loadWindow, text=loadingstring, background="white")
+        progressbar     = Progressbar(self.loadWindow, orient= "horizontal", \
+                                    length=300, mode="indeterminate")
+        progressbar.pack(pady=self.h/10)
+        loadinglabel.pack()
+
+        self.centerWindow(self.loadWindow)
+        self.loadWindow.title("Wait")
+        progressbar.start()
 
     def login(self):
         '''
@@ -139,7 +171,6 @@ class GUI(Frame):
 
         # This will log into Facebook with the given credentials
         self.client = client.Client(self.email, self.password)
-        self.chatUI()
 
         # NOTE: This is a working print test that will print conversations with latest users
         # users = self.client.fetchAllUsers()
@@ -154,7 +185,7 @@ class GUI(Frame):
             Chat GUI page
         '''
         self.h = 400
-        self.w = 800
+        self.w = 700
         self.resetWindow()
         self.parent.title("Messenger")
 
