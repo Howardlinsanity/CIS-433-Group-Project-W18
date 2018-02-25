@@ -9,6 +9,7 @@ from Tkinter         import TOP, X, N, LEFT
 from Tkinter         import END, Listbox, MULTIPLE
 from Tkinter         import Toplevel, DISABLED
 from Tkinter         import ACTIVE, NORMAL
+from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
 
@@ -127,19 +128,76 @@ class GUI(Frame):
         # Done with bottom buttons
 
     def login(self):
+        '''
+            Login with the inputted credentials from the loginScreen
+        '''
         if(self.client is not None):
             if(self.client.isLoggedIn()):
                 self.client.logout()
         self.email = self.emailEntry.get()
         self.password = self.passwordEntry.get()
 
+        # This will log into Facebook with the given credentials
         self.client = client.Client(self.email, self.password)
-        users = self.client.fetchAllUsers()
-        for user in users:
-            print(user.name, user.uid)
-            messages = self.client.fetchThreadMessages(user.uid)
-            for message in messages:
-                print(self.client._fetchInfo(message.author)[message.author]["first_name"], ":", message.text)
+        self.chatUI()
+
+        # NOTE: This is a working print test that will print conversations with latest users
+        # users = self.client.fetchAllUsers()
+        # for user in users:
+        #     print(user.name, user.uid)
+        #     messages = self.client.fetchThreadMessages(user.uid)
+        #     for message in messages:
+        #         print(self.client._fetchInfo(message.author)[message.author]["first_name"], message.text)
+
+    def chatUI(self):
+        '''
+            Chat GUI page
+        '''
+        self.h = 400
+        self.w = 800
+        self.resetWindow()
+        self.parent.title("Messenger")
+
+        messages_frame = Frame(self)
+
+        my_msg = StringVar() # For messages to be sent.
+        my_msg.set("Type your messages HERE")
+
+        scrollbar = Scrollbar(messages_frame) # Navigate through past messages
+
+        # Following will contain the messages
+
+        msg_list = Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
+        scrollbar.config(command = msg_list.yview)
+        scrollbar.pack(side=RIGHT, fill='y')
+        msg_list.pack(side=LEFT, fill=BOTH)
+        msg_list.pack()
+        messages_frame.pack()
+
+        entry_field = Entry(self, textvariable=my_msg)
+        entry_field.bind("<Return>", self.send)
+        entry_field.pack()
+        exitButton = Button(self, text="Exit", command=self.parent.destroy)
+        exitButton.pack(side=RIGHT, padx=5, pady=5)
+        send_button = Button(self, text="Send", command=self.send)
+        send_button.pack(side=RIGHT)
+
+    def send(self):
+        return 0
+
+
+
+        # # Creating frame that takes in email
+        # emailFrame = Frame(self)
+        # emailFrame.pack(fill=X, side=TOP)
+
+        # emailLabel = Label(emailFrame, text="Email:", background="white")
+        # emailLabel.pack(side=LEFT, padx=15, pady=10)
+
+        # self.emailEntry = Entry(emailFrame, width=30)
+        # self.emailEntry.insert(0, self.email)
+        # self.emailEntry.pack(side=LEFT, padx=35, pady=10)
+        # # Done with email frame
 
 
     def checkThread(self,thread,function):
