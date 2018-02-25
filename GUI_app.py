@@ -9,6 +9,7 @@ from Tkinter         import TOP, X, N, LEFT
 from Tkinter         import END, Listbox, MULTIPLE
 from Tkinter         import Toplevel, DISABLED
 from Tkinter         import ACTIVE, NORMAL
+from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
 
@@ -126,24 +127,112 @@ class GUI(Frame):
 
         exitButton = Button(self, text="Exit", command=self.parent.destroy)
         exitButton.pack(side=RIGHT, padx=5, pady=5)
-        self.loginButton = Button(self, text="Log In", command=self.login)
+        self.loginButton = Button(self, text="Log In", command=self.start)
         self.loginButton.pack(side=RIGHT)
         # Done with bottom buttons
 
+    def start(self):
+        '''
+            Initiates login, starts loading screen.
+        '''
+        thread1 = ThreadedTask(self.queue,self.login)
+        thread2 = ThreadedTask(self.queue,self.loadingScreen)
+        thread2.start()
+        thread1.start()
+
+        self.checkThread(thread1,self.chatUI)
+
+    def loadingScreen(self):
+        '''
+        This starts the loading screen
+        and disables all buttons
+        '''
+        for i in self.winfo_children():
+            if Button == type(i):
+                i.configure(state=DISABLED)
+
+        self.loadWindow = Toplevel(self.parent)
+        loadingstring   = "Logging in..."
+        loadinglabel    = Label(self.loadWindow, text=loadingstring, background="white")
+        progressbar     = Progressbar(self.loadWindow, orient= "horizontal", \
+                                    length=300, mode="indeterminate")
+        progressbar.pack(pady=self.h/10)
+        loadinglabel.pack()
+
+        self.centerWindow(self.loadWindow)
+        self.loadWindow.title("Wait")
+        progressbar.start()
+
     def login(self):
+        '''
+            Login with the inputted credentials from the loginScreen
+        '''
         if(self.client is not None):
             if(self.client.isLoggedIn()):
                 self.client.logout()
         self.email = self.emailEntry.get()
         self.password = self.passwordEntry.get()
 
+        # This will log into Facebook with the given credentials
         self.client = client.Client(self.email, self.password)
-        users = self.client.fetchAllUsers()
-        for user in users:
-            print(user.name, user.uid)
-            messages = self.client.fetchThreadMessages(user.uid)
-            for message in messages:
-                print(self.client._fetchInfo(message.author)[message.author]["first_name"], ":", message.text)
+
+        # NOTE: This is a working print test that will print conversations with latest users
+        # users = self.client.fetchAllUsers()
+        # for user in users:
+        #     print(user.name, user.uid)
+        #     messages = self.client.fetchThreadMessages(user.uid)
+        #     for message in messages:
+        #         print(self.client._fetchInfo(message.author)[message.author]["first_name"], message.text)
+
+    def chatUI(self):
+        '''
+            Chat GUI page
+        '''
+        self.h = 400
+        self.w = 700
+        self.resetWindow()
+        self.parent.title("Messenger")
+
+        messages_frame = Frame(self)
+
+        my_msg = StringVar() # For messages to be sent.
+        my_msg.set("Type your messages HERE")
+
+        scrollbar = Scrollbar(messages_frame) # Navigate through past messages
+
+        # Following will contain the messages
+
+        msg_list = Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
+        scrollbar.config(command = msg_list.yview)
+        scrollbar.pack(side=RIGHT, fill='y')
+        msg_list.pack(side=LEFT, fill=BOTH)
+        msg_list.pack()
+        messages_frame.pack()
+
+        entry_field = Entry(self, textvariable=my_msg)
+        entry_field.bind("<Return>", self.send)
+        entry_field.pack()
+        exitButton = Button(self, text="Exit", command=self.parent.destroy)
+        exitButton.pack(side=RIGHT, padx=5, pady=5)
+        send_button = Button(self, text="Send", command=self.send)
+        send_button.pack(side=RIGHT)
+
+    def send(self):
+        return 0
+
+
+
+        # # Creating frame that takes in email
+        # emailFrame = Frame(self)
+        # emailFrame.pack(fill=X, side=TOP)
+
+        # emailLabel = Label(emailFrame, text="Email:", background="white")
+        # emailLabel.pack(side=LEFT, padx=15, pady=10)
+
+        # self.emailEntry = Entry(emailFrame, width=30)
+        # self.emailEntry.insert(0, self.email)
+        # self.emailEntry.pack(side=LEFT, padx=35, pady=10)
+        # # Done with email frame
 
 
     def checkThread(self,thread,function):
