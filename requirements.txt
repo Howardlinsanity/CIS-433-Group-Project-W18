@@ -1,4 +1,2 @@
-requests
-lxml
-beautifulsoup4
-enum34; python_version < '3.4'
+pymongo==3.6.0
+wheel==0.24.0

@@ -30,3 +30,25 @@ Group members
 - Howard Lin
 - Brian Leeson
 - Jamie Zimmerman
+
+Troubleshooting
+-----------
+- If you get an error such as the following:
+
+.. code-block:: console
+    
+    $ ... Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+
+A possible fix would be to install lxml using pip:
+
+.. code-block:: console
+    $ sudo pip install lxml
+
+- If your login screen after launching the GUI has nothing in it, make sure you run setup.py using the following:
+
+.. code-block:: console
+
+    $ python setup.py install
+
+and make sure to have all dependencies installed and that the tkinter gui is running with no issues. Once you install everything, you may need to restart your terminal or computer.
+
