@@ -12,6 +12,10 @@ from Tkinter         import ACTIVE, NORMAL
 from multiprocessing import Queue
 from fbchat          import log, client
 
+# ecryption
+import Encrypt
+
+
 class GUI(Frame):
     '''
         This is the root window
@@ -185,8 +189,7 @@ class ThreadedTask(threading.Thread):
 if __name__ == "__main__":
     # connect to DB
 
-    # appPubKey =
-    # appPrivKey =
+    appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
 
     # create GUI
     root = Tk()
