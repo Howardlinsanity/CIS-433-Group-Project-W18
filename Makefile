@@ -3,7 +3,7 @@ SHELL := /bin/bash
 # Author(s): Brian + Jamie
 # Credit: Based of a makefile originally designed by Michal Young at the UO for CIS 322.
 
-VENV = python3 -m venv
+VENV = virtualenv env
 
 
 # User instructions:
@@ -32,25 +32,27 @@ VENV = python3 -m venv
 INVENV = source ./env/bin/activate;
 
 env:
-	$(VENV)  env
+	$(VENV)
 	($(INVENV) pip install --upgrade pip; pip install -r requirements.txt) || true
 
 freeze:
 	(pip freeze | grep -v "pkg-resources" > requirements.txt) || true
 
 run:	env
-	($(INVENV) python2 gui_sandbox/tkinter_sandbox/GUI_app.py) ||  true
+	($(INVENV) python2 GUI_app.py) ||  true
 
 jamie: env
-	rm -rf /data/db
-	sudo mkdir -p /data/db
-	sudo chmod 755 /data/db
-	sudo chown -R $USER /data/db
-	#$(INVENV) python2 demos/mongoup.py
+	mongod &
+	$(INVENV) python2 demos/mongoup.py
+	$(INVENV) python2 demos/trial_db.py
+	$(INVENV) python2 demos/destroy_db.py
+	$(INVENV) python2 demos/trial_db.py
+
 
 # Run server in background. Be comfortable with killing processes to kill the server before running in background
 background: env
 	($(INVENV) python2 gui_sandbox/tkinter_sandbox/GUI_app.py) &
+
 # Run test suite. 
 # Nosetest will run all files of the form test_*.py
 
