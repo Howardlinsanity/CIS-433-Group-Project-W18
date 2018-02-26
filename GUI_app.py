@@ -13,6 +13,15 @@ from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
 
+
+def new_onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
+    self.markAsDelivered(author_id, thread_id)
+    self.markAsRead(author_id)
+    print("THIS SHIT IS WORKIGN")
+    log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
+
+client.onMessage = new_onMessage
+
 class GUI(Frame):
     '''
         This is the root window
@@ -139,6 +148,9 @@ class GUI(Frame):
 
         self.checkThread(thread1,self.chatUI)
 
+    def listen(self):
+        self.client.listen()
+
     def loadingScreen(self):
         '''
         This starts the loading screen
@@ -172,6 +184,8 @@ class GUI(Frame):
 
         # This will log into Facebook with the given credentials
         self.client = client.Client(self.email, self.password)
+        self.thread3 = ThreadedTask(self.queue, self.listen)
+        self.thread3.start()
 
         # NOTE: This is a working print test that will print conversations with latest users
         # users = self.client.fetchAllUsers()
