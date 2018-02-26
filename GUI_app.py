@@ -186,7 +186,7 @@ class GUI(Frame):
         #         print(self.client._fetchInfo(message.author)[message.author]["first_name"], message.text)
 
     def chatUI(self):
-        """
+        '''
             Chat GUI page
         '''
         self.h = 350
