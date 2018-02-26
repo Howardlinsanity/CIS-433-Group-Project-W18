@@ -226,23 +226,32 @@ class GUI(Frame):
         self.usr_scrollbar.pack(side=RIGHT, fill='y', padx=5)
         self.usr_list.pack(side=RIGHT, fill='y')
 
+        self.users = self.client.fetchAllUsers()
+        for user in self.users:
+            self.usr_list.insert(END, " " + user.name)
+
+        # By default I would just take the first conversation
+        self.currentUser = self.users[0]
+
+        messages = self.client.fetchThreadMessages(self.currentUser.uid)
+        for message in messages:
+            self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+
+        self.usr_list.bind('<Double-1>', self.changeConvo)
+
     def send(self):
         return 0
 
+    def changeConvo(self, param):
+        selectionIndex = self.usr_list.curselection()
+        self.currentUser = self.users[selectionIndex[0]]
+        self.updateConversation()
 
-
-        # # Creating frame that takes in email
-        # emailFrame = Frame(self)
-        # emailFrame.pack(fill=X, side=TOP)
-
-        # emailLabel = Label(emailFrame, text="Email:", background="white")
-        # emailLabel.pack(side=LEFT, padx=15, pady=10)
-
-        # self.emailEntry = Entry(emailFrame, width=30)
-        # self.emailEntry.insert(0, self.email)
-        # self.emailEntry.pack(side=LEFT, padx=35, pady=10)
-        # # Done with email frame
-
+    def updateConversation(self):
+        self.msg_list.delete(0, END)
+        messages = self.client.fetchThreadMessages(self.currentUser.uid)
+        for message in messages:
+            self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
 
     def checkThread(self,thread,function):
         '''
