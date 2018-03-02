@@ -300,8 +300,14 @@ class ThreadedTask(threading.Thread):
 if __name__ == "__main__":
     # connect to DB
 
+"""
     #TODO: Brian: only gen keys if keys not in DB. get keys from DB if exist
-    appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
+    selfID = getSelfID()
+    if(selfID in database):
+        appPubKey, appPrivKey = getPubPrivKey()
+    else:  # create keys
+        appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
+"""
 
     # create GUI
     root = Tk()
