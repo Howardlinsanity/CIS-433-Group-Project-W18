@@ -44,8 +44,7 @@ run:	env
 
 jamie: env
 	$(INVENV) mongod &
-	$(INVENV) python2 demos/mongoup.py
-	$(INVENV) python2 demos/trial_db.py
+	$(INVENV) python2 db_interact.py
 
 uninstall:
 	$(INVENV) python2 demos/destroy_db.py
