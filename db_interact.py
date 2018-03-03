@@ -105,3 +105,6 @@ def test():
         addNewFriendsPublicKey("friend987", "they_are_just_ok")
         f1 = getFriendsPublicKey("friend987")
         print "friend 1 changed their key to " + f1
+
+if __name__=="__main__":
+        test()
