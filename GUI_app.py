@@ -267,6 +267,7 @@ class GUI(Frame):
         message = self.entry_field.get()
         self.client.send(Message(text=message),self.currentUser.uid)
         self.entry_field.delete(0, END)
+        self.updateConversation()
 
     def changeConvo(self, param):
         '''
@@ -338,7 +339,7 @@ def tk_loop(root, ex):
     '''
     if(ex.msg_list is not None):
         ex.updateConversation()
-    root.after(500, tk_loop, root, ex)
+    root.after(1500, tk_loop, root, ex)
 
 if __name__ == "__main__":
     # connect to DB
@@ -353,7 +354,7 @@ if __name__ == "__main__":
 
 
     # make calls to api to load GUI with relavent information
-    root.after(500, tk_loop, root, ex)
+    root.after(1500, tk_loop, root, ex)
     root.mainloop()
 
     root.destroy()
