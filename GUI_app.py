@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 import threading
 import tkMessageBox
 import tkFileDialog
@@ -13,14 +14,19 @@ from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
 
+# global new_messages
+new_messages = False
 
-def new_onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
-    self.markAsDelivered(author_id, thread_id)
-    self.markAsRead(author_id)
-    print("THIS SHIT IS WORKIGN")
-    log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
+# I had to make a wrapper for the client class to make it communicate with the GUI during an on_message with listen
+class gui_client(client.Client):
+    def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
+        self.markAsDelivered(author_id, thread_id)
+        self.markAsRead(author_id)
+        print("THIS FUCKING WORKS")
+        new_messages = True
 
-client.onMessage = new_onMessage
+        log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
+
 
 class GUI(Frame):
     '''
@@ -148,7 +154,21 @@ class GUI(Frame):
 
         self.checkThread(thread1,self.chatUI)
 
+    def check_messages(self):
+        '''
+        Checks for messages, if there are new messages we update conversation
+        '''
+        print("CHECKING AND SHIT")
+        if(new_messages):
+            self.updateConversation()
+            new_messages = False
+            print("NEW MESSAGES IS NOW FALSE")
+        self.after(1000, self.check_messages) # Checks every half second
+
     def listen(self):
+        '''
+        We start the listening loop 
+        '''
         self.client.listen()
 
     def loadingScreen(self):
@@ -183,7 +203,7 @@ class GUI(Frame):
         self.password = self.passwordEntry.get()
 
         # This will log into Facebook with the given credentials
-        self.client = client.Client(self.email, self.password)
+        self.client = gui_client(self.email, self.password)
         self.thread3 = ThreadedTask(self.queue, self.listen)
         self.thread3.start()
 
@@ -257,15 +277,22 @@ class GUI(Frame):
         return 0
 
     def changeConvo(self, param):
+        '''
+        When you click on another user in the chat we update the page
+        '''
         selectionIndex = self.usr_list.curselection()
         self.currentUser = self.users[selectionIndex[0]]
         self.updateConversation()
 
     def updateConversation(self):
+        '''
+        Clear the conversation box, reupdate with new conversation
+        '''
         self.msg_list.delete(0, END)
         messages = self.client.fetchThreadMessages(self.currentUser.uid)
         for message in messages:
             self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+        self.msg_list.see(END)
 
     def checkThread(self,thread,function):
         '''
@@ -283,6 +310,8 @@ class GUI(Frame):
             self.parent.after(1000, lambda: self.checkThread(thread,function))
         else:
             function()
+
+    
 
 
 class ThreadedTask(threading.Thread):
@@ -318,15 +347,11 @@ if __name__ == "__main__":
     root.resizable(width=False, height=False)
     ex = GUI(root, client)
 
+    new_messages = False
+
     # make calls to api to load GUI with relavent information
-
+    root.after(2000, GUI.check_messages, ex)
     root.mainloop()
-    # while (not done):
-        # check if new message on current conversation
-        # if new message:
-            # update view
-
-        # wait n units of time
 
     root.destroy()
 
