@@ -13,6 +13,7 @@ from Tkinter         import ACTIVE, NORMAL
 from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
+from fbchat.models   import *
 
 
 # Wrapper for the client class just in case we need to modify client to make it work
@@ -263,8 +264,9 @@ class GUI(Frame):
         '''
         Send messages, will send whatever is in the message field and then clear it
         '''
-        # message = self.entry_field.get()
-        # self.client.send(Message(text=message),)
+        message = self.entry_field.get()
+        self.client.send(Message(text=message),self.currentUser.uid)
+        self.entry_field.delete(0, END)
 
     def changeConvo(self, param):
         '''
