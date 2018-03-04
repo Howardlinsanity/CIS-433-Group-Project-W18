@@ -14,16 +14,12 @@ from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
 
-# global new_messages
-new_messages = False
 
-# I had to make a wrapper for the client class to make it communicate with the GUI during an on_message with listen
+# Wrapper for the client class just in case we need to modify client to make it work
 class gui_client(client.Client):
     def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
         self.markAsDelivered(author_id, thread_id)
         self.markAsRead(author_id)
-        print("THIS FUCKING WORKS")
-        new_messages = True
 
         log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
 
@@ -44,6 +40,7 @@ class GUI(Frame):
         self.loadWindow  = None
         self.remember    = False
         self.client = None
+        self.msg_list = None
         self.loginScreen()
 
     def centerWindow(self,notself=None):
@@ -154,17 +151,6 @@ class GUI(Frame):
 
         self.checkThread(thread1,self.chatUI)
 
-    def check_messages(self):
-        '''
-        Checks for messages, if there are new messages we update conversation
-        '''
-        print("CHECKING AND SHIT")
-        if(new_messages):
-            self.updateConversation()
-            new_messages = False
-            print("NEW MESSAGES IS NOW FALSE")
-        self.after(1000, self.check_messages) # Checks every half second
-
     def listen(self):
         '''
         We start the listening loop 
@@ -274,7 +260,11 @@ class GUI(Frame):
         self.usr_list.bind('<Double-1>', self.changeConvo)
 
     def send(self):
-        return 0
+        '''
+        Send messages, will send whatever is in the message field and then clear it
+        '''
+        # message = self.entry_field.get()
+        # self.client.send(Message(text=message),)
 
     def changeConvo(self, param):
         '''
@@ -288,11 +278,15 @@ class GUI(Frame):
         '''
         Clear the conversation box, reupdate with new conversation
         '''
-        self.msg_list.delete(0, END)
+        last_message = self.msg_list.get(END)
+
         messages = self.client.fetchThreadMessages(self.currentUser.uid)
-        for message in messages:
-            self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
-        self.msg_list.see(END)
+        new_last_message = self.client._fetchInfo(messages[0].author)[messages[0].author]["first_name"] + ": " + messages[0].text
+        if(last_message != messages[0]):
+            self.msg_list.delete(0, END)
+            for message in messages:
+                self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+            self.msg_list.see(END)
 
     def checkThread(self,thread,function):
         '''
@@ -336,6 +330,14 @@ class ThreadedTask(threading.Thread):
         '''
         self.function()
 
+def tk_loop(root, ex):
+    '''
+    Checks for messages every half a second
+    '''
+    if(ex.msg_list is not None):
+        ex.updateConversation()
+    root.after(500, tk_loop, root, ex)
+
 if __name__ == "__main__":
     # connect to DB
 
@@ -347,10 +349,9 @@ if __name__ == "__main__":
     root.resizable(width=False, height=False)
     ex = GUI(root, client)
 
-    new_messages = False
 
     # make calls to api to load GUI with relavent information
-    root.after(2000, GUI.check_messages, ex)
+    root.after(500, tk_loop, root, ex)
     root.mainloop()
 
     root.destroy()
