@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 import threading
 import tkMessageBox
 import tkFileDialog
@@ -12,6 +13,17 @@ from Tkinter         import ACTIVE, NORMAL
 from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
 from fbchat          import log, client
+from fbchat.models   import *
+
+
+# Wrapper for the client class just in case we need to modify client to make it work
+class gui_client(client.Client):
+    def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
+        self.markAsDelivered(author_id, thread_id)
+        self.markAsRead(author_id)
+
+        log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
+
 
 # encryption
 import Encrypt
@@ -33,6 +45,7 @@ class GUI(Frame):
         self.loadWindow  = None
         self.remember    = False
         self.client = None
+        self.msg_list = None
         self.loginScreen()
 
     def centerWindow(self,notself=None):
@@ -143,6 +156,12 @@ class GUI(Frame):
 
         self.checkThread(thread1,self.chatUI)
 
+    def listen(self):
+        '''
+        We start the listening loop 
+        '''
+        self.client.listen()
+
     def loadingScreen(self):
         """
         This starts the loading screen
@@ -175,7 +194,9 @@ class GUI(Frame):
         self.password = self.passwordEntry.get()
 
         # This will log into Facebook with the given credentials
-        self.client = client.Client(self.email, self.password)
+        self.client = gui_client(self.email, self.password)
+        self.thread3 = ThreadedTask(self.queue, self.listen)
+        self.thread3.start()
 
         # NOTE: This is a working print test that will print conversations with latest users
         # users = self.client.fetchAllUsers()
@@ -244,18 +265,35 @@ class GUI(Frame):
         self.usr_list.bind('<Double-1>', self.changeConvo)
 
     def send(self):
-        return 0
+        '''
+        Send messages, will send whatever is in the message field and then clear it
+        '''
+        message = self.entry_field.get()
+        self.client.send(Message(text=message),self.currentUser.uid)
+        self.entry_field.delete(0, END)
+        self.updateConversation()
 
     def changeConvo(self, param):
+        '''
+        When you click on another user in the chat we update the page
+        '''
         selectionIndex = self.usr_list.curselection()
         self.currentUser = self.users[selectionIndex[0]]
         self.updateConversation()
 
     def updateConversation(self):
-        self.msg_list.delete(0, END)
+        '''
+        Clear the conversation box, reupdate with new conversation
+        '''
+        last_message = self.msg_list.get(END)
+
         messages = self.client.fetchThreadMessages(self.currentUser.uid)
-        for message in messages:
-            self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+        new_last_message = self.client._fetchInfo(messages[0].author)[messages[0].author]["first_name"] + ": " + messages[0].text
+        if(last_message != messages[0]):
+            self.msg_list.delete(0, END)
+            for message in messages:
+                self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+            self.msg_list.see(END)
 
     def checkThread(self,thread,function):
         """
@@ -273,6 +311,8 @@ class GUI(Frame):
             self.parent.after(1000, lambda: self.checkThread(thread,function))
         else:
             function()
+
+    
 
 
 class ThreadedTask(threading.Thread):
@@ -297,6 +337,14 @@ class ThreadedTask(threading.Thread):
         """
         self.function()
 
+def tk_loop(root, ex):
+    '''
+    Checks for messages every half a second
+    '''
+    if(ex.msg_list is not None):
+        ex.updateConversation()
+    root.after(1500, tk_loop, root, ex)
+
 if __name__ == "__main__":
     # connect to DB
 
@@ -307,15 +355,10 @@ if __name__ == "__main__":
     root.resizable(width=False, height=False)
     ex = GUI(root, client)
 
+
     # make calls to api to load GUI with relavent information
-
+    root.after(1500, tk_loop, root, ex)
     root.mainloop()
-    # while (not done):
-        # check if new message on current conversation
-        # if new message:
-            # update view
-
-        # wait n units of time
 
     root.destroy()
 
