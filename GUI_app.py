@@ -2,6 +2,7 @@ import os
 import time
 import sys
 import threading
+import requests
 import tkMessageBox
 import tkFileDialog
 from ttk             import Style, Button, Label, Entry, Progressbar, Checkbutton
@@ -12,15 +13,66 @@ from Tkinter         import Toplevel, DISABLED
 from Tkinter         import ACTIVE, NORMAL
 from Tkinter         import StringVar, Scrollbar
 from multiprocessing import Queue
+from uuid            import uuid1
+from random          import choice
 from fbchat          import log, client
 from fbchat.models   import *
+from fbchat.utils    import *
+from fbchat.graphql  import *
 
 
 # Wrapper for the client class just in case we need to modify client to make it work
 class gui_client(client.Client):
+    def __init__(self, email, password, user_agent=None, max_tries=5, session_cookies=None, logging_level=logging.INFO):
+        """Initializes and logs in the client
+
+        :param email: Facebook `email`, `id` or `phone number`
+        :param password: Facebook account password
+        :param user_agent: Custom user agent to use when sending requests. If `None`, user agent will be chosen from a premade list (see :any:`utils.USER_AGENTS`)
+        :param max_tries: Maximum number of times to try logging in
+        :param session_cookies: Cookies from a previous session (Will default to login if these are invalid)
+        :param logging_level: Configures the `logging level <https://docs.python.org/3/library/logging.html#logging-levels>`_. Defaults to `INFO`
+        :type max_tries: int
+        :type session_cookies: dict
+        :type logging_level: int
+        :raises: FBchatException on failed login
+        """
+
+        self.sticky, self.pool = (None, None)
+        self._session = requests.session()
+        self.req_counter = 1
+        self.seq = "0"
+        self.payloadDefault = {}
+        self.client = 'mercury'
+        self.default_thread_id = None
+        self.default_thread_type = None
+        self.req_url = ReqUrl()
+        self.most_recent_message = None
+
+        if not user_agent:
+            user_agent = choice(USER_AGENTS)
+
+        self._header = {
+            'Content-Type' : 'application/x-www-form-urlencoded',
+            'Referer' : self.req_url.BASE,
+            'Origin' : self.req_url.BASE,
+            'User-Agent' : user_agent,
+            'Connection' : 'keep-alive',
+        }
+
+        handler.setLevel(logging_level)
+
+        # If session cookies aren't set, not properly loaded or gives us an invalid session, then do the login
+        if not session_cookies or not self.setSession(session_cookies) or not self.isLoggedIn():
+            self.login(email, password, max_tries)
+        else:
+            self.email = email
+            self.password = password
+
     def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
         self.markAsDelivered(author_id, thread_id)
         self.markAsRead(author_id)
+        self.most_recent_message = message_object
 
         log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
 
@@ -46,6 +98,7 @@ class GUI(Frame):
         self.remember    = False
         self.client = None
         self.msg_list = None
+        self.changingConvo = False
         self.loginScreen()
 
     def centerWindow(self,notself=None):
@@ -259,6 +312,7 @@ class GUI(Frame):
         self.currentUser = self.users[0]
 
         messages = self.client.fetchThreadMessages(self.currentUser.uid)
+        self.client.most_recent_message = messages[0]
         for message in messages:
             self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
 
@@ -271,6 +325,7 @@ class GUI(Frame):
         message = self.entry_field.get()
         self.client.send(Message(text=message),self.currentUser.uid)
         self.entry_field.delete(0, END)
+        self.client.most_recent_message = ""
         self.updateConversation()
 
     def changeConvo(self, param):
@@ -279,21 +334,37 @@ class GUI(Frame):
         '''
         selectionIndex = self.usr_list.curselection()
         self.currentUser = self.users[selectionIndex[0]]
+        self.changingConvo = True
         self.updateConversation()
 
     def updateConversation(self):
         '''
         Clear the conversation box, reupdate with new conversation
         '''
-        last_message = self.msg_list.get(END)
-
-        messages = self.client.fetchThreadMessages(self.currentUser.uid)
-        new_last_message = self.client._fetchInfo(messages[0].author)[messages[0].author]["first_name"] + ": " + messages[0].text
-        if(last_message != messages[0]):
+        print("UPDATING CONVERSATION")
+        if(self.changingConvo):
+            print("WERE CHANGING CONVO")
+            messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
             for message in messages:
                 self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
             self.msg_list.see(END)
+            self.changingConvo = False
+        else:
+            print("WERE NOT CHANGING CONVO")
+            last_message = self.msg_list.get(END)
+            if(self.client is not None and self.client.isLoggedIn()):
+                new_last_message = self.client._fetchInfo(self.client.most_recent_message.author)[self.client.most_recent_message.author]["first_name"] + ": " + self.client.most_recent_message.text
+                if(last_message != new_last_message):
+                    print("WERE ACTUALLY UPDATING THE CONVO")
+                    messages = self.client.fetchThreadMessages(self.currentUser.uid)
+                    self.msg_list.delete(0, END)
+                    for message in messages:
+                        self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+                    self.msg_list.see(END)
+                    self.client.most_recent_message = messages[0]
+                else:
+                    print("THEYRE THE SAME, NOTHING WILL CHANGE")
 
     def checkThread(self,thread,function):
         """
@@ -345,6 +416,13 @@ def tk_loop(root, ex):
         ex.updateConversation()
     root.after(1500, tk_loop, root, ex)
 
+def initiate_tk_loop(root, ex):
+    '''
+    I honestly don't know how to thread this other than doing this terrible piece of code
+    '''
+    root.after(1500, tk_loop, root, ex)
+    
+
 if __name__ == "__main__":
     # connect to DB
 
@@ -357,7 +435,8 @@ if __name__ == "__main__":
 
 
     # make calls to api to load GUI with relavent information
-    root.after(1500, tk_loop, root, ex)
+    ex.threadtk = ThreadedTask(ex.queue, initiate_tk_loop(root, ex))
+    ex.threadtk.start()
     root.mainloop()
 
     root.destroy()
