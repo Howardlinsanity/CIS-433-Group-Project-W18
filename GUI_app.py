@@ -341,9 +341,7 @@ class GUI(Frame):
         '''
         Clear the conversation box, reupdate with new conversation
         '''
-        print("UPDATING CONVERSATION")
         if(self.changingConvo):
-            print("WERE CHANGING CONVO")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
             for message in messages:
@@ -351,20 +349,16 @@ class GUI(Frame):
             self.msg_list.see(END)
             self.changingConvo = False
         else:
-            print("WERE NOT CHANGING CONVO")
             last_message = self.msg_list.get(END)
             if(self.client is not None and self.client.isLoggedIn()):
                 new_last_message = self.client._fetchInfo(self.client.most_recent_message.author)[self.client.most_recent_message.author]["first_name"] + ": " + self.client.most_recent_message.text
                 if(last_message != new_last_message):
-                    print("WERE ACTUALLY UPDATING THE CONVO")
                     messages = self.client.fetchThreadMessages(self.currentUser.uid)
                     self.msg_list.delete(0, END)
                     for message in messages:
                         self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
                     self.msg_list.see(END)
                     self.client.most_recent_message = messages[0]
-                else:
-                    print("THEYRE THE SAME, NOTHING WILL CHANGE")
 
     def checkThread(self,thread,function):
         """
@@ -435,8 +429,7 @@ if __name__ == "__main__":
 
 
     # make calls to api to load GUI with relavent information
-    ex.threadtk = ThreadedTask(ex.queue, initiate_tk_loop(root, ex))
-    ex.threadtk.start()
+    initiate_tk_loop(root, ex)
     root.mainloop()
 
     root.destroy()
