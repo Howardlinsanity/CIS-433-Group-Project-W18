@@ -5,6 +5,8 @@ import threading
 import requests
 import tkMessageBox
 import tkFileDialog
+# encryption
+import Encrypt
 from ttk             import Style, Button, Label, Entry, Progressbar, Checkbutton
 from Tkinter         import Tk, Frame, RIGHT, BOTH, RAISED
 from Tkinter         import TOP, X, N, LEFT
@@ -24,7 +26,8 @@ from fbchat.graphql  import *
 # Wrapper for the client class just in case we need to modify client to make it work
 class gui_client(client.Client):
     def __init__(self, email, password, user_agent=None, max_tries=5, session_cookies=None, logging_level=logging.INFO):
-        """Initializes and logs in the client
+        '''
+        Initializes and logs in the client
 
         :param email: Facebook `email`, `id` or `phone number`
         :param password: Facebook account password
@@ -36,7 +39,7 @@ class gui_client(client.Client):
         :type session_cookies: dict
         :type logging_level: int
         :raises: FBchatException on failed login
-        """
+        '''
 
         self.sticky, self.pool = (None, None)
         self._session = requests.session()
@@ -48,6 +51,7 @@ class gui_client(client.Client):
         self.default_thread_type = None
         self.req_url = ReqUrl()
         self.most_recent_message = None
+        self.most_recent_messages_queue = Queue()
 
         if not user_agent:
             user_agent = choice(USER_AGENTS)
@@ -72,19 +76,38 @@ class gui_client(client.Client):
     def onMessage(self, author_id, message_object, thread_id, thread_type, **kwargs):
         self.markAsDelivered(author_id, thread_id)
         self.markAsRead(author_id)
-        self.most_recent_message = message_object
+        if(message_object is not None):
+            self.most_recent_message = message_object
+            self.most_recent_messages_queue.put(message_object)
 
         log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
 
+    def stopListening(self):
+        """Cleans up the variables from startListening"""
+        print("Logging off...")
+        self.listening = False
+        self.sticky, self.pool = (None, None)
+        print("Logged off")
 
-# encryption
-import Encrypt
+    def listen(self, markAlive=True):
+        """
+        Initializes and runs the listening loop continually
 
+        :param markAlive: Whether this should ping the Facebook server each time the loop runs
+        :type markAlive: bool
+        """
+        self.startListening()
+        self.onListening()
+
+        while self.listening and self.doOneListen(markAlive):
+            pass
+
+        self.stopListening()
 
 class GUI(Frame):
-    """
-        This is the root window
-    """
+    '''
+    This is the root window
+    '''
 
     def __init__(self, parent, client):
         self.queue = Queue()
@@ -92,6 +115,7 @@ class GUI(Frame):
         # for the sake of testing I will leave it like this and clear it before finishing the gui
         self.email = "bel@cs.uoregon.edu"
         self.password = "Bob433"
+        self.name = ""
         self.parent = parent
         self.initialized = False
         self.loadWindow  = None
@@ -102,14 +126,14 @@ class GUI(Frame):
         self.loginScreen()
 
     def centerWindow(self,notself=None):
-        """
+        '''
         This centers the window into place
         if notself is set, then it centers
         the notself window
 
         @param:
             notself - TKobject
-        """
+        '''
 
         if notself != None: # notself is primarly for progressbar
             sw = self.parent.winfo_screenwidth()
@@ -125,10 +149,10 @@ class GUI(Frame):
             self.parent.geometry('%dx%d+%d+%d' % (self.w,self.h, x ,y))
 
     def startWindow(self):
-        """
+        '''
         This method starts/creates the window for
         the UI
-        """
+        '''
         Frame.__init__(self, self.parent, background="white")
         self.style = Style()
         self.style.theme_use("default")
@@ -140,9 +164,9 @@ class GUI(Frame):
         self.initialized = True
 
     def resetWindow(self):
-        """
+        '''
         Resets the window
-        """
+        '''
         if(self.initialized):
             self.destroy()
         if(self.loadWindow != None):
@@ -152,9 +176,9 @@ class GUI(Frame):
 
 
     def loginScreen(self):
-        """
-            First screen that user will see, will require Facebook credentials to be inputted
-        """
+        '''
+        First screen that user will see, will require Facebook credentials to be inputted
+        '''
 
         # Resetting window
         self.h = 150
@@ -199,9 +223,9 @@ class GUI(Frame):
         # Done with bottom buttons
 
     def start(self):
-        """
-            Initiates login, starts loading screen.
-        """
+        '''
+        Initiates login, starts loading screen.
+        '''
         thread1 = ThreadedTask(self.queue,self.login)
         thread2 = ThreadedTask(self.queue,self.loadingScreen)
         thread2.start()
@@ -209,17 +233,11 @@ class GUI(Frame):
 
         self.checkThread(thread1,self.chatUI)
 
-    def listen(self):
-        '''
-        We start the listening loop 
-        '''
-        self.client.listen()
-
     def loadingScreen(self):
-        """
+        '''
         This starts the loading screen
         and disables all buttons
-        """
+        '''
         for i in self.winfo_children():
             if Button == type(i):
                 i.configure(state=DISABLED)
@@ -237,9 +255,9 @@ class GUI(Frame):
         progressbar.start()
 
     def login(self):
-        """
-            Login with the inputted credentials from the loginScreen
-        """
+        '''
+        Login with the inputted credentials from the loginScreen
+        '''
         if(self.client is not None):
             if(self.client.isLoggedIn()):
                 self.client.logout()
@@ -248,20 +266,19 @@ class GUI(Frame):
 
         # This will log into Facebook with the given credentials
         self.client = gui_client(self.email, self.password)
+        print(self.client._fetchInfo(self.client.uid)[self.client.uid].get('first_name'))
         self.thread3 = ThreadedTask(self.queue, self.listen)
         self.thread3.start()
 
-        # NOTE: This is a working print test that will print conversations with latest users
-        # users = self.client.fetchAllUsers()
-        # for user in users:
-        #     print(user.name, user.uid)
-        #     messages = self.client.fetchThreadMessages(user.uid)
-        #     for message in messages:
-        #         print(self.client._fetchInfo(message.author)[message.author]["first_name"], message.text)
+    def listen(self):
+        '''
+        We start the listening loop 
+        '''
+        self.client.listen()
 
     def chatUI(self):
         '''
-            Chat GUI page
+        Chat GUI page
         '''
         self.h = 350
         self.w = 700
@@ -291,7 +308,7 @@ class GUI(Frame):
         self.entry_field.pack(side="top", fill=X, padx=5, pady=5)
         self.send_button.pack(side="top")
 
-        self.exitButton = Button(self.right_frame, text="Exit", command=self.parent.destroy)
+        self.exitButton = Button(self.right_frame, text="Exit", command=self.exit)
         self.exitButton.pack(side="bottom", padx=5, pady=5)
 
         # We make the the side that contains the other users.
@@ -322,10 +339,10 @@ class GUI(Frame):
         '''
         Send messages, will send whatever is in the message field and then clear it
         '''
-        message = self.entry_field.get()
-        self.client.send(Message(text=message),self.currentUser.uid)
+        message = Message(text=self.entry_field.get())
+        self.client.send(message,self.currentUser.uid)
         self.entry_field.delete(0, END)
-        self.client.most_recent_message = ""
+        self.client.most_recent_message = message
         self.updateConversation()
 
     def changeConvo(self, param):
@@ -339,7 +356,7 @@ class GUI(Frame):
 
     def updateConversation(self):
         '''
-        Clear the conversation box, reupdate with new conversation
+        Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
         if(self.changingConvo):
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
@@ -351,17 +368,40 @@ class GUI(Frame):
         else:
             last_message = self.msg_list.get(END)
             if(self.client is not None and self.client.isLoggedIn()):
-                new_last_message = self.client._fetchInfo(self.client.most_recent_message.author)[self.client.most_recent_message.author]["first_name"] + ": " + self.client.most_recent_message.text
+                msg_object = self.client.most_recent_message
+                msg_author = self.client.most_recent_message.author
+                name = ""
+                if(msg_author is None):
+                    msg_author = self.name
+                else:
+                    name = self.client._fetchInfo(msg_author)[msg_author]["first_name"]
+
+                new_last_message = name + ": " + msg_object.text
                 if(last_message != new_last_message):
-                    messages = self.client.fetchThreadMessages(self.currentUser.uid)
-                    self.msg_list.delete(0, END)
-                    for message in messages:
-                        self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
-                    self.msg_list.see(END)
-                    self.client.most_recent_message = messages[0]
+                    # This is checking if were updating the current convo or refreshing convo
+                    if(name + ": " in last_message):
+                        while(self.client.most_recent_messages_queue.empty() is not True):
+                            message = self.client.most_recent_messages_queue.get()
+                            self.msg_list.insert(END, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+                            self.msg_list.see(END)
+                    else:
+                        messages = self.client.fetchThreadMessages(self.currentUser.uid)
+                        self.msg_list.delete(0, END)
+                        for message in messages:
+                            self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+                        self.msg_list.see(END)
+                        self.client.most_recent_message = messages[0]
+
+
+    def exit(self):
+        '''
+        Stops listening and ends GUI
+        '''
+        self.client.stopListening()
+        self.parent.destroy()
 
     def checkThread(self,thread,function):
-        """
+        '''
         This function checks to see if
         the given thread is dead, if it
         is not, it recalls a new checkThread.
@@ -371,7 +411,7 @@ class GUI(Frame):
         @param:
             thread   - ThreadedTask
             functoin - a function
-        """
+        '''
         if thread.is_alive():
             self.parent.after(1000, lambda: self.checkThread(thread,function))
         else:
@@ -381,9 +421,9 @@ class GUI(Frame):
 
 
 class ThreadedTask(threading.Thread):
-    """
+    '''
     Used for creating a threaded task
-    """
+    '''
     def __init__(self,queue,function):
         """
         Starts the threaded task
@@ -432,5 +472,4 @@ if __name__ == "__main__":
     initiate_tk_loop(root, ex)
     root.mainloop()
 
-    root.destroy()
 
