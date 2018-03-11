@@ -34,6 +34,7 @@ INVENV = source ./env/bin/activate;
 env:
 	$(VENV)
 	($(INVENV) pip install --upgrade pip; pip install -r requirements.txt) || true
+	$(INVENV) pip install requests
 
 freeze:
 	(pip freeze | grep -v "pkg-resources" > requirements.txt) || true
