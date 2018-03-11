@@ -21,6 +21,7 @@ from fbchat          import log, client
 from fbchat.models   import *
 from fbchat.utils    import *
 from fbchat.graphql  import *
+import db_interact as db
 
 
 # Wrapper for the client class just in case we need to modify client to make it work
@@ -80,14 +81,11 @@ class gui_client(client.Client):
             self.most_recent_message = message_object
             self.most_recent_messages_queue.put(message_object)
 
-        log.info("{} from {} in {}".format(message_object, thread_id, thread_type.name))
-
     def stopListening(self):
         """Cleans up the variables from startListening"""
-        print("Logging off...")
+        print("Logging off... (This might take a little bit, we swear we're not stealing your info)")
         self.listening = False
         self.sticky, self.pool = (None, None)
-        print("Logged off")
 
     def listen(self, markAlive=True):
         """
@@ -343,7 +341,8 @@ class GUI(Frame):
         self.client.send(message,self.currentUser.uid)
         self.entry_field.delete(0, END)
         self.client.most_recent_message = message
-        self.updateConversation()
+        self.msg_list.insert(0, self.name + ": " + message.text)
+        self.msg_list.see(END)
 
     def changeConvo(self, param):
         '''
@@ -448,19 +447,27 @@ def tk_loop(root, ex):
     '''
     if(ex.msg_list is not None):
         ex.updateConversation()
-    root.after(1500, tk_loop, root, ex)
+    root.after(2000, tk_loop, root, ex)
 
 def initiate_tk_loop(root, ex):
     '''
     I honestly don't know how to thread this other than doing this terrible piece of code
     '''
-    root.after(1500, tk_loop, root, ex)
+    root.after(2000, tk_loop, root, ex)
     
 
 if __name__ == "__main__":
-    # connect to DB
 
-    appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
+    """
+    #TODO: Brian: only gen keys if keys not in DB. get keys from DB if exist
+    selfID = getSelfID()
+    if(selfID in database):
+        appPubKey, appPrivKey = getPubPrivKey()
+    else:  # create keys
+        appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
+    """
+    # print db.getMyOwnPublicKey()
+
 
     # create GUI
     root = Tk()
@@ -471,5 +478,3 @@ if __name__ == "__main__":
     # make calls to api to load GUI with relavent information
     initiate_tk_loop(root, ex)
     root.mainloop()
-
-
