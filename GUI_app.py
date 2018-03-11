@@ -312,9 +312,14 @@ class GUI(Frame):
         self.left_frame = Frame(self)
         self.left_frame.pack(side=LEFT, fill='y')
 
-        self.usr_scrollbar = Scrollbar(self.left_frame)
+        self.usr_scrollbar = Scrollbar(self.left_frame)        
         self.usr_list = Listbox(self.left_frame, height=15, width=50, yscrollcommand=self.usr_scrollbar.set)
         self.usr_scrollbar.config(command = self.usr_list.yview)
+        self.usr_search_bar = Entry(self.left_frame, textvariable="")
+        self.usr_search_label = Label(self.left_frame, text="Search")
+
+        self.usr_search_label.pack(side="top", fill=X,pady=2, padx=1)
+        self.usr_search_bar.pack(side="top", fill=X, pady=3, padx=1)
         self.usr_scrollbar.pack(side=RIGHT, fill='y', padx=5)
         self.usr_list.pack(side=RIGHT, fill='y')
 
