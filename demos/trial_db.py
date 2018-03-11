@@ -6,12 +6,14 @@ def main():
 
         print "listing all i find here..."
         records = []
-        for entry in collection.find({}):
-                r = entry['user']
-                p = entry['public_key']
-                records.append({"key_user": r, "key_pub": p})
-        for pair in records:
-                print pair
+        the_stuff = collection.find_one({})
+        #for entry in collection.find({}):
+#                r = entry['user']
+#                p = entry['public_key']
+#                records.append({"key_user": r, "key_pub": p})
+#        for pair in records:
+#                print pair
+        print the_stuff['public_key']
         print "in trial db - did it!"
 
 
