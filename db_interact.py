@@ -5,7 +5,6 @@ def setMeUp(my_id, my_pub_key, my_priv_key):
         client = MongoClient()
         db = client.keystore
         collection = db.personal
-
         my_record = {"id": my_id, "pub_key": my_pub_key, "priv_key": my_priv_key}
         post_id = collection.insert(my_record)
         return post_id
@@ -14,19 +13,25 @@ def getMyOwnId():
         db = client.keystore
         collection = db.personal
         entry = collection.find_one({})
-        return entry['id']
+        if entry != None:
+                return entry['id']
+        return False
 def getMyOwnPublicKey():
         client = MongoClient()
         db = client.keystore
         collection = db.personal
         entry = collection.find_one({})
-        return entry['pub_key']
+        if entry != None:
+                return entry['pub_key']
+        return False
 def getMyOwnPrivateKey():
         client = MongoClient()
         db = client.keystore
         collection = db.personal
         entry = collection.find_one({})
-        return entry['priv_key']
+        if entry != None:
+                return entry['priv_key']
+        return False
 def setMyOwnPublicKey(new_key):
         client = MongoClient()
         db = client.keystore
@@ -56,6 +61,9 @@ def setMyOwnPrivateKey(new_key):
                 )
         return update_id
 
+
+
+
 """---------- FRIEND FUNCTIONS ----------"""
 def addNewFriend(friend_id):
         client = MongoClient()
@@ -70,7 +78,9 @@ def getFriendsPublicKey(friend_id):
         db = client.keystore
         collection = db.friend
         entry = collection.find_one({"id": friend_id})
-        return entry['pub_key']
+        if entry != None:
+                return entry['pub_key']
+        return False
 def addNewFriendsPublicKey(friend_id, friend_pub_key):
         client = MongoClient()
         db = client.keystore
@@ -86,10 +96,15 @@ def test():
         setMeUp("19999", "evil", "virus")
         setMyOwnPublicKey("gobbledegook543")
         setMyOwnPrivateKey("amazing_no_one_knows")
+        myid = getMyOwnId()
+        if myid:
+                print "my id is " + myid
         pub = getMyOwnPublicKey()
         priv = getMyOwnPrivateKey()
-        print "My pub key is " + pub
-        print "My priv key is " + priv
+        if pub:
+                print "My pub key is " + pub
+        if priv:
+                print "My priv key is " + priv
 
         addNewFriend("friend987")
         addNewFriend("friend123")
@@ -97,14 +112,25 @@ def test():
         addNewFriendsPublicKey("friend123", "i_love_them")
         f1 = getFriendsPublicKey("friend987")
         f2 = getFriendsPublicKey("friend123")
-        print "friends 1's key is " + f1
-        print "friends 2's key is " + f2
+        if f1:
+                print "friends 1's key is " + f1
+        if f2:
+                print "friends 2's key is " + f2
 
 
         # whoops they changed their key
         addNewFriendsPublicKey("friend987", "they_are_just_ok")
         f1 = getFriendsPublicKey("friend987")
-        print "friend 1 changed their key to " + f1
+        if f1:
+                print "friend 1 changed their key to " + f1
+
+        #try to get non-existent friend key
+        f1 = getFriendsPublicKey("buggyboo")
+        if f1:
+                print "friend buggy boo has key " + f1
+        else:
+                print "friend buggy boo doesn't exist"
 
 if __name__=="__main__":
         test()
+        
