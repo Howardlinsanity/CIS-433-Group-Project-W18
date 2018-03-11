@@ -93,7 +93,13 @@ def addNewFriendsPublicKey(friend_id, friend_pub_key):
 
 ## JUST SOME CASUAL UNIT TESTS, DON'T EVER EXECUTE THIS FUNCTION
 def test():
+        pub = getMyOwnPublicKey()
+        if pub:
+                print "My pub key is " + pub
+        else:
+                print "no entry yet"
         setMeUp("19999", "evil", "virus")
+
         setMyOwnPublicKey("gobbledegook543")
         setMyOwnPrivateKey("amazing_no_one_knows")
         myid = getMyOwnId()
