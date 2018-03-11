@@ -27,7 +27,7 @@ import db_interact as db
 # Wrapper for the client class just in case we need to modify client to make it work
 class gui_client(client.Client):
     def __init__(self, email, password, user_agent=None, max_tries=5, session_cookies=None, logging_level=logging.INFO):
-        '''
+        """
         Initializes and logs in the client
 
         :param email: Facebook `email`, `id` or `phone number`
@@ -40,7 +40,7 @@ class gui_client(client.Client):
         :type session_cookies: dict
         :type logging_level: int
         :raises: FBchatException on failed login
-        '''
+        """
 
         self.sticky, self.pool = (None, None)
         self._session = requests.session()
@@ -103,9 +103,9 @@ class gui_client(client.Client):
         self.stopListening()
 
 class GUI(Frame):
-    '''
+    """
     This is the root window
-    '''
+    """
 
     def __init__(self, parent, client):
         self.queue = Queue()
@@ -124,14 +124,14 @@ class GUI(Frame):
         self.loginScreen()
 
     def centerWindow(self,notself=None):
-        '''
+        """
         This centers the window into place
         if notself is set, then it centers
         the notself window
 
         @param:
             notself - TKobject
-        '''
+        """
 
         if notself != None: # notself is primarly for progressbar
             sw = self.parent.winfo_screenwidth()
@@ -147,10 +147,10 @@ class GUI(Frame):
             self.parent.geometry('%dx%d+%d+%d' % (self.w,self.h, x ,y))
 
     def startWindow(self):
-        '''
+        """
         This method starts/creates the window for
         the UI
-        '''
+        """
         Frame.__init__(self, self.parent, background="white")
         self.style = Style()
         self.style.theme_use("default")
@@ -162,9 +162,9 @@ class GUI(Frame):
         self.initialized = True
 
     def resetWindow(self):
-        '''
+        """
         Resets the window
-        '''
+        """
         if(self.initialized):
             self.destroy()
         if(self.loadWindow != None):
@@ -174,9 +174,9 @@ class GUI(Frame):
 
 
     def loginScreen(self):
-        '''
+        """
         First screen that user will see, will require Facebook credentials to be inputted
-        '''
+        """
 
         # Resetting window
         self.h = 150
@@ -221,9 +221,9 @@ class GUI(Frame):
         # Done with bottom buttons
 
     def start(self):
-        '''
+        """
         Initiates login, starts loading screen.
-        '''
+        """
         thread1 = ThreadedTask(self.queue,self.login)
         thread2 = ThreadedTask(self.queue,self.loadingScreen)
         thread2.start()
@@ -232,10 +232,10 @@ class GUI(Frame):
         self.checkThread(thread1,self.chatUI)
 
     def loadingScreen(self):
-        '''
+        """
         This starts the loading screen
         and disables all buttons
-        '''
+        """
         for i in self.winfo_children():
             if Button == type(i):
                 i.configure(state=DISABLED)
@@ -253,9 +253,9 @@ class GUI(Frame):
         progressbar.start()
 
     def login(self):
-        '''
+        """
         Login with the inputted credentials from the loginScreen
-        '''
+        """
         if(self.client is not None):
             if(self.client.isLoggedIn()):
                 self.client.logout()
@@ -269,15 +269,15 @@ class GUI(Frame):
         self.thread3.start()
 
     def listen(self):
-        '''
-        We start the listening loop 
-        '''
+        """
+        We start the listening loop
+        """
         self.client.listen()
 
     def chatUI(self):
-        '''
+        """
         Chat GUI page
-        '''
+        """
         self.h = 350
         self.w = 700
         self.resetWindow()
@@ -334,9 +334,9 @@ class GUI(Frame):
         self.usr_list.bind('<Double-1>', self.changeConvo)
 
     def send(self):
-        '''
+        """
         Send messages, will send whatever is in the message field and then clear it
-        '''
+        """
         message = Message(text=self.entry_field.get())
         self.client.send(message,self.currentUser.uid)
         self.entry_field.delete(0, END)
@@ -345,18 +345,18 @@ class GUI(Frame):
         self.msg_list.see(END)
 
     def changeConvo(self, param):
-        '''
+        """
         When you click on another user in the chat we update the page
-        '''
+        """
         selectionIndex = self.usr_list.curselection()
         self.currentUser = self.users[selectionIndex[0]]
         self.changingConvo = True
         self.updateConversation()
 
     def updateConversation(self):
-        '''
+        """
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
-        '''
+        """
         if(self.changingConvo):
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
@@ -393,14 +393,14 @@ class GUI(Frame):
 
 
     def exit(self):
-        '''
+        """
         Stops listening and ends GUI
-        '''
+        """
         self.client.stopListening()
         self.parent.destroy()
 
     def checkThread(self,thread,function):
-        '''
+        """
         This function checks to see if
         the given thread is dead, if it
         is not, it recalls a new checkThread.
@@ -410,7 +410,7 @@ class GUI(Frame):
         @param:
             thread   - ThreadedTask
             functoin - a function
-        '''
+        """
         if thread.is_alive():
             self.parent.after(1000, lambda: self.checkThread(thread,function))
         else:
@@ -420,9 +420,9 @@ class GUI(Frame):
 
 
 class ThreadedTask(threading.Thread):
-    '''
+    """
     Used for creating a threaded task
-    '''
+    """
     def __init__(self,queue,function):
         """
         Starts the threaded task
@@ -442,17 +442,17 @@ class ThreadedTask(threading.Thread):
         self.function()
 
 def tk_loop(root, ex):
-    '''
+    """
     Checks for messages every half a second
-    '''
+    """
     if(ex.msg_list is not None):
         ex.updateConversation()
     root.after(2000, tk_loop, root, ex)
 
 def initiate_tk_loop(root, ex):
-    '''
+    """
     I honestly don't know how to thread this other than doing this terrible piece of code
-    '''
+    """
     root.after(2000, tk_loop, root, ex)
     
 
@@ -466,7 +466,29 @@ if __name__ == "__main__":
     else:  # create keys
         appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
     """
-    # print db.getMyOwnPublicKey()
+    myID = db.getMyOwnId()
+    myPubKey = db.getMyOwnPublicKey()
+    myPrivKey = db.getMyOwnPrivateKey()
+
+    print "this before if"
+    print myID, myPubKey, myPrivKey
+
+    # if this first time setup
+    if not (myID and myPrivKey and myPrivKey):
+        # create id and keys
+        print "creating keys"
+        myPubKey, myPrivKey = Encrypt.genPrivatePublicPair()
+        myID = 0
+        db.setMeUp(myID, "test", 'test')
+
+    myID = db.getMyOwnId()
+    myPubKey = db.getMyOwnPublicKey()
+    myPrivKey = db.getMyOwnPrivateKey()
+
+    print "this is the tuple"
+    print myID, myPubKey, myPrivKey
+
+
 
 
     # create GUI
