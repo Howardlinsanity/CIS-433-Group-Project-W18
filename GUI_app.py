@@ -110,8 +110,8 @@ class GUI(Frame):
         self.queue = Queue()
         # I got sick of filling in the login parameters repeatedly,
         # for the sake of testing I will leave it like this and clear it before finishing the gui
-        self.email = "bel@cs.uoregon.edu"
-        self.password = "Bob433"
+        self.email = "linnyflow@gmail.com"
+        self.password = "AwesomeSauce1997"
         self.name = ""
         self.parent = parent
         self.initialized = False
@@ -219,7 +219,7 @@ class GUI(Frame):
         self.loginButton.pack(side=RIGHT)
         # Done with bottom buttons
 
-    def start(self):
+    def start(self,opt=""):
         '''
         Initiates login, starts loading screen.
         '''
@@ -316,26 +316,44 @@ class GUI(Frame):
         self.usr_list = Listbox(self.left_frame, height=15, width=50, yscrollcommand=self.usr_scrollbar.set)
         self.usr_scrollbar.config(command = self.usr_list.yview)
         self.usr_search_bar = Entry(self.left_frame, textvariable="")
-        self.usr_search_label = Label(self.left_frame, text="Search")
+        self.usr_search_button = Button(self.left_frame, text="Search", command=self.search)
 
-        self.usr_search_label.pack(side="top", fill=X,pady=2, padx=1)
-        self.usr_search_bar.pack(side="top", fill=X, pady=3, padx=1)
+        self.usr_search_bar.pack(side="top", fill=X, pady=2, padx=1)
+        self.usr_search_button.pack(side="top", fill=X, pady=2,padx=1)
         self.usr_scrollbar.pack(side=RIGHT, fill='y', padx=5)
         self.usr_list.pack(side=RIGHT, fill='y')
 
-        self.users = self.client.fetchAllUsers()
+        # The user loading logic is in the search function
+        self.search()
+
+        self.usr_list.bind('<Double-1>', self.changeConvo)
+
+    def search(self):
+        fresh_users = self.client.fetchAllUsers()
+        self.users = []
+        if(self.usr_search_bar.get() is not ""):
+            for user in fresh_users:
+                if(self.usr_search_bar.get() in user.name):
+                    self.users.append(user)
+        else:
+            self.users = fresh_users
+
+        if(self.usr_list.size() is not 0):
+            self.usr_list.delete(0,END)
+
         for user in self.users:
             self.usr_list.insert(END, " " + user.name)
 
         # By default I would just take the first conversation
         self.currentUser = self.users[0]
+        self.usr_search_bar.delete(0, END)
 
-        messages = self.client.fetchThreadMessages(self.currentUser.uid)
-        self.client.most_recent_message = messages[0]
-        for message in messages:
-            self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
-
-        self.usr_list.bind('<Double-1>', self.changeConvo)
+        # print(self.currentUser)
+        # messages = self.client.fetchThreadMessages(self.currentUser.uid)
+        # self.client.most_recent_message = messages[0]
+        # for message in messages:
+        #     self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
+        # self.msg_list.see(END)
 
     def send(self):
         '''
@@ -352,6 +370,7 @@ class GUI(Frame):
         '''
         When you click on another user in the chat we update the page
         '''
+        print("CHANGING CONVO")
         selectionIndex = self.usr_list.curselection()
         self.currentUser = self.users[selectionIndex[0]]
         self.changingConvo = True
@@ -362,6 +381,7 @@ class GUI(Frame):
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
         if(self.changingConvo):
+            print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
             for message in messages:
@@ -370,7 +390,7 @@ class GUI(Frame):
             self.changingConvo = False
         else:
             last_message = self.msg_list.get(END)
-            if(self.client is not None and self.client.isLoggedIn()):
+            if(self.client is not None and self.client.isLoggedIn() and self.client.most_recent_message is not None):
                 msg_object = self.client.most_recent_message
                 msg_author = self.client.most_recent_message.author
                 name = ""
