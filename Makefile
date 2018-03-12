@@ -34,13 +34,15 @@ INVENV = source ./env/bin/activate;
 env:
 	$(VENV)
 	($(INVENV) pip install --upgrade pip; pip install -r requirements.txt) || true
+	$(INVENV) pip install requests
 
 freeze:
 	(pip freeze | grep -v "pkg-resources" > requirements.txt) || true
 
 run:	env
-	$(INVENV) mongod &
-	($(INVENV) python2 GUI_app.py) ||  true
+	$(INVENV) mongod --dbpath ./data/db &
+
+	# ($(INVENV) python2 GUI_app.py) ||  true
 
 jamie: env
 	$(INVENV) mongod &
@@ -51,14 +53,6 @@ uninstall:
 # Run server in background. Be comfortable with killing processes to kill the server before running in background
 background: env
 	($(INVENV) python2 gui_sandbox/tkinter_sandbox/GUI_app.py) &
-
-# Run test suite. 
-# Nosetest will run all files of the form test_*.py
-
-# Will run all functions in all test_*.py files.
-# Intended to test data processing functions
-test:	env
-	$(INVENV) nosetests
 
 # 'clean' should leave the project ready to run
 # 'veryclean' will leave project in a state that requires re-running installation and configuration steps

@@ -21,6 +21,7 @@ from fbchat          import log, client
 from fbchat.models   import *
 from fbchat.utils    import *
 from fbchat.graphql  import *
+import db_interact as db
 
 
 # Wrapper for the client class just in case we need to modify client to make it work
@@ -481,9 +482,17 @@ def initiate_tk_loop(root, ex):
     
 
 if __name__ == "__main__":
-    # connect to DB
 
-    appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
+    """
+    #TODO: Brian: only gen keys if keys not in DB. get keys from DB if exist
+    selfID = getSelfID()
+    if(selfID in database):
+        appPubKey, appPrivKey = getPubPrivKey()
+    else:  # create keys
+        appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
+    """
+    # print db.getMyOwnPublicKey()
+
 
     # create GUI
     root = Tk()
@@ -494,5 +503,3 @@ if __name__ == "__main__":
     # make calls to api to load GUI with relavent information
     initiate_tk_loop(root, ex)
     root.mainloop()
-
-
