@@ -466,30 +466,7 @@ if __name__ == "__main__":
     else:  # create keys
         appPubKey, appPrivKey = Encrypt.genPrivatePublicPair()
     """
-    myID = db.getMyOwnId()
-    myPubKey = db.getMyOwnPublicKey()
-    myPrivKey = db.getMyOwnPrivateKey()
-
-    print "this before if"
-    print myID, myPubKey, myPrivKey
-
-    # if this first time setup
-    if not (myID and myPrivKey and myPrivKey):
-        # create id and keys
-        print "creating keys"
-        myPubKey, myPrivKey = Encrypt.genPrivatePublicPair()
-        myID = 0
-        db.setMeUp(myID, "test", 'test')
-
-    myID = db.getMyOwnId()
-    myPubKey = db.getMyOwnPublicKey()
-    myPrivKey = db.getMyOwnPrivateKey()
-
-    print "this is the tuple"
-    print myID, myPubKey, myPrivKey
-
-
-
+    
 
     # create GUI
     root = Tk()
