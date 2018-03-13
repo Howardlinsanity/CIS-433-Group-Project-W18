@@ -41,8 +41,7 @@ freeze:
 
 run:	env
 	$(INVENV) mongod --dbpath ./data/db &
-
-	# ($(INVENV) python2 GUI_app.py) ||  true
+	($(INVENV) python2 GUI_app.py) ||  true
 
 jamie: env
 	$(INVENV) mongod &

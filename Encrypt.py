@@ -8,10 +8,47 @@ https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+# from cryptography.hazmat.primitives import hashes
+# from cryptography.hazmat.primitives.asymmetric import padding\
+import random
 
 
+def encrypt(plaintext, key):
+    """
+
+    :param plaintext: string
+    :param key: int
+    :return:
+    """
+
+    ciphertext = ""
+    for char in plaintext:
+        new_char = chr((ord(char) + key))
+        ciphertext += new_char
+    return ciphertext
+
+
+def decrypt(ciphertext, key):
+    """
+
+    :param ciphertext: string
+    :param key: int
+    :return:
+    """
+    return encrypt(ciphertext, -key)
+
+
+def generateKey():
+    """
+    returns random int for ceaser key
+    :return:
+    """
+    return random.randint(-100, 100)
+
+
+
+'''
+# deprecated
 def encrypt(plaintext, public_key):
     """
     encrypts it with the public key.
@@ -30,7 +67,7 @@ def encrypt(plaintext, public_key):
     )
     return ciphertext
 
-
+# deprecated
 def decrypt(ciphertext, private_key):
     """
 
@@ -49,6 +86,7 @@ def decrypt(ciphertext, private_key):
     return plaintext
 
 
+
 def genPrivatePublicPair():
     """
     :return: generates a priv, pub key pair
@@ -58,12 +96,15 @@ def genPrivatePublicPair():
 
     return private_key, public_key
 
+'''
+
 if __name__ == "__main__":
     # run sanity check
-    priv, pub = genPrivatePublicPair()
-    msg = bytes("hello, world")
-    ciphertext = encrypt(msg, pub)
-    plaintext = decrypt(ciphertext, priv)
+    #priv, pub = genPrivatePublicPair()
+    msg = "hello, world"
+    key = generateKey()
+    ciphertext = encrypt(msg, key)
+    plaintext = decrypt(ciphertext, key)
     print "original: {}, encrypted: {}, decrypted: {}".format(str(msg), str(ciphertext), plaintext)
 
 
