@@ -231,6 +231,7 @@ class GUI(Frame):
 
         self.checkThread(thread1, self.chatUI)
 
+
     def loadingScreen(self):
         '''
         This starts the loading screen
@@ -246,6 +247,7 @@ class GUI(Frame):
         progressbar = Progressbar(self.loadWindow, orient="horizontal", \
                                   length=300, mode="indeterminate")
         progressbar.pack(pady=self.h / 10)
+
         loadinglabel.pack()
 
         self.centerWindow(self.loadWindow)
@@ -256,8 +258,9 @@ class GUI(Frame):
         '''
         Login with the inputted credentials from the loginScreen
         '''
-        if (self.client is not None):
-            if (self.client.isLoggedIn()):
+
+        if(self.client is not None):
+            if(self.client.isLoggedIn()):
                 self.client.logout()
         self.email = self.emailEntry.get()
         self.password = self.passwordEntry.get()
@@ -289,15 +292,18 @@ class GUI(Frame):
         self.messages_frame = Frame(self.right_frame)
         self.messages_frame.pack(side=TOP)
 
+
         self.my_msg = StringVar()  # For messages to be sent.
         self.my_msg.set("")
 
         self.msg_scrollbar = Scrollbar(self.messages_frame)  # Navigate through past messages
 
+
         # Following will contain the messages
 
         self.msg_list = Listbox(self.messages_frame, height=15, width=50, yscrollcommand=self.msg_scrollbar.set)
         self.msg_scrollbar.config(command=self.msg_list.yview)
+
         self.msg_scrollbar.pack(side=RIGHT, fill='y', padx=5)
         self.msg_list.pack(side=RIGHT)
 
@@ -316,11 +322,13 @@ class GUI(Frame):
         self.usr_scrollbar = Scrollbar(self.left_frame)
         self.usr_list = Listbox(self.left_frame, height=15, width=50, yscrollcommand=self.usr_scrollbar.set)
         self.usr_scrollbar.config(command=self.usr_list.yview)
+
         self.usr_search_bar = Entry(self.left_frame, textvariable="")
         self.usr_search_button = Button(self.left_frame, text="Search", command=self.search)
 
         self.usr_search_bar.pack(side="top", fill=X, pady=2, padx=1)
         self.usr_search_button.pack(side="top", fill=X, pady=2, padx=1)
+
         self.usr_scrollbar.pack(side=RIGHT, fill='y', padx=5)
         self.usr_list.pack(side=RIGHT, fill='y')
 
@@ -332,6 +340,7 @@ class GUI(Frame):
     def search(self):
         fresh_users = self.client.fetchAllUsers()
         self.users = []
+
         if (self.usr_search_bar.get() is not ""):
             for user in fresh_users:
                 if (self.usr_search_bar.get() in user.name):
@@ -361,6 +370,7 @@ class GUI(Frame):
         Send messages, will send whatever is in the message field and then clear it
         '''
         message = Message(text=self.entry_field.get())
+
         self.client.send(message, self.currentUser.uid)
         self.entry_field.delete(0, END)
         self.client.most_recent_message = message
@@ -381,7 +391,9 @@ class GUI(Frame):
         '''
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
+
         if (self.changingConvo):
+
             print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
@@ -426,7 +438,9 @@ class GUI(Frame):
         self.client.stopListening()
         self.parent.destroy()
 
+
     def checkThread(self, thread, function):
+
         '''
         This function checks to see if
         the given thread is dead, if it
