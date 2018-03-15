@@ -23,8 +23,14 @@ def encrypt(plaintext, key):
 
     ciphertext = ""
     for char in plaintext:
-        new_char = chr((ord(char) + key))
+        oNum = ord(char)
+        if oNum > 255:  # not a ASCII character
+            new_char = char
+        else:
+            new_char = chr(oNum + key)
+
         ciphertext += new_char
+
     return ciphertext
 
 

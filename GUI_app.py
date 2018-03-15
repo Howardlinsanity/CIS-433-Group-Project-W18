@@ -16,7 +16,7 @@ from Tkinter import ACTIVE, NORMAL
 from Tkinter import StringVar, Scrollbar
 from multiprocessing import Queue
 from uuid import uuid1
-from random import choice
+from random import choice, randint
 from fbchat import log, client
 from fbchat.models import *
 from fbchat.utils import *
@@ -369,12 +369,16 @@ class GUI(Frame):
         '''
         Send messages, will send whatever is in the message field and then clear it
         '''
-        message = Message(text=self.entry_field.get())
+        plaintext = self.entry_field.get()
+        key = randint(-60, 60)
+        ciphertext = Encrypt.encrypt(plaintext, key)
+        ciphertext = "{}Q_Q{}".format(key, ciphertext)
+        message = Message(text=ciphertext)
 
         self.client.send(message, self.currentUser.uid)
         self.entry_field.delete(0, END)
         self.client.most_recent_message = message
-        self.msg_list.insert(0, self.name + ": " + message.text)
+        self.msg_list.insert(0, self.name + ": " + plaintext)
         self.msg_list.see(END)
 
     def changeConvo(self, param):
@@ -398,6 +402,9 @@ class GUI(Frame):
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
             for message in messages:
+                if "Q_Q" in message.text:
+                    key, ciphertext = message.text.split("Q_Q")
+                    message.text = Encrypt.decrypt(ciphertext, int(key))
                 self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
                     "first_name"] + ": " + message.text)
             self.msg_list.see(END)
@@ -419,6 +426,10 @@ class GUI(Frame):
                     if (name + ": " in last_message):
                         while (self.client.most_recent_messages_queue.empty() is not True):
                             message = self.client.most_recent_messages_queue.get()
+                            if "Q_Q" in message.text:
+                                key, ciphertext = message.text.split("Q_Q")
+                                message.text = Encrypt.decrypt(ciphertext, int(key))
+
                             self.msg_list.insert(END, self.client._fetchInfo(message.author)[message.author][
                                 "first_name"] + ": " + message.text)
                             self.msg_list.see(END)
