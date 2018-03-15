@@ -111,8 +111,8 @@ class GUI(Frame):
         self.queue = Queue()
         # I got sick of filling in the login parameters repeatedly,
         # for the sake of testing I will leave it like this and clear it before finishing the gui
-        self.email = "linnyflow@gmail.com"
-        self.password = "AwesomeSauce1997"
+        self.email = ""
+        self.password = ""
         self.name = ""
         self.parent = parent
         self.initialized = False
