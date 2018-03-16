@@ -398,7 +398,7 @@ class GUI(Frame):
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
 
-        if (self.changingConvo):
+        if (self.changingConvo): # we are changing the conversation/switching users
             print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
@@ -408,11 +408,15 @@ class GUI(Frame):
                     message.text = Encrypt.decrypt(ciphertext, int(key))
                 else:  # no decrypting needed
                     message.text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
+                # Insert the "clean"/unencrypted/readable message into the list box
                 self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
                     "first_name"] + ": " + message.text)
+            # The message listbox will automatically look at the last/"most recent" message
             self.msg_list.see(END)
+            # We no longer need to change the conversation
             self.changingConvo = False
-        else:
+        else: # same user, but checking for new messages
+            # Sees last message from the message list box
             last_message = self.msg_list.get(END)
             if (self.client is not None and self.client.isLoggedIn() and self.client.most_recent_message is not None):
                 msg_object = self.client.most_recent_message
@@ -422,22 +426,41 @@ class GUI(Frame):
                     msg_author = self.name
                 else:
                     name = self.client._fetchInfo(msg_author)[msg_author]["first_name"]
-                new_last_message = name + ": " + msg_object.text
+                clean_text = ""
+                if "Q_Q" in msg_object.text:  # to be decrypted
+                    key, ciphertext = msg_object.text.split("Q_Q")
+                    clean_text = Encrypt.decrypt(ciphertext, int(key))
+                else:  # no decrypting needed
+                    clean_text = unicodedata.normalize('NFKD', msg_object.text).encode('ascii', 'ignore')
+                new_last_message = name + ": " + clean_text
                 if (last_message != new_last_message):
                     # This is checking if were updating the current convo or refreshing convo
                     if (name + ": " in last_message):
                         while (self.client.most_recent_messages_queue.empty() is not True):
                             message = self.client.most_recent_messages_queue.get()
+                            clean_text = ""
+                            if "Q_Q" in message.text:  # to be decrypted
+                                key, ciphertext = message.text.split("Q_Q")
+                                clean_text = Encrypt.decrypt(ciphertext, int(key))
+                            else:  # no decrypting needed
+                                clean_text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
 
                             self.msg_list.insert(END, self.client._fetchInfo(message.author)[message.author][
-                                "first_name"] + ": " + message.text)
+                                "first_name"] + ": " + clean_text)
                             self.msg_list.see(END)
                     else:
                         messages = self.client.fetchThreadMessages(self.currentUser.uid)
                         self.msg_list.delete(0, END)
                         for message in messages:
+                            clean_text = ""
+                            if "Q_Q" in message.text:  # to be decrypted
+                                key, ciphertext = message.text.split("Q_Q")
+                                clean_text = Encrypt.decrypt(ciphertext, int(key))
+                            else:  # no decrypting needed
+                                clean_text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
+
                             self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
-                                "first_name"] + ": " + message.text)
+                                "first_name"] + ": " + clean_text)
                         self.msg_list.see(END)
                         self.client.most_recent_message = messages[0]
 
