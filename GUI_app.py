@@ -8,6 +8,7 @@ import tkFileDialog
 # encryption
 import Encrypt
 import unicodedata
+import emoji
 
 from ttk import Style, Button, Label, Entry, Progressbar, Checkbutton
 from Tkinter import Tk, Frame, RIGHT, BOTH, RAISED
@@ -373,10 +374,10 @@ class GUI(Frame):
         '''
         plaintext = self.entry_field.get()
         key = randint(-60, 60)
-        ciphertext = Encrypt.encrypt(plaintext, key)
-        ciphertext = "{}Q_Q{}".format(key, ciphertext)
-        message = Message(text=ciphertext)
-
+        ciphertext = Encrypt.encrypt(plaintext, 29)
+        ciphertext = "{}Q_Q{}".format(29, ciphertext)
+        message = Message(text=unicode(ciphertext, "ascii"))
+        print("IM IN THE SEND FUNCTION: ciphertext stuff:", ciphertext, message)
         self.client.send(message, self.currentUser.uid)
         self.entry_field.delete(0, END)
         self.client.most_recent_message = message
@@ -397,20 +398,17 @@ class GUI(Frame):
         '''
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
+        if(self.client.most_recent_message is not None):
+            print("IM IN THE CLIENT", self.client.most_recent_message.text)    
 
         if (self.changingConvo): # we are changing the conversation/switching users
             print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
             for message in messages:
-                if "Q_Q" in message.text:  # to be decrypted
-                    key, ciphertext = message.text.split("Q_Q")
-                    message.text = Encrypt.decrypt(ciphertext, int(key))
-                else:  # no decrypting needed
-                    message.text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
-                # Insert the "clean"/unencrypted/readable message into the list box
+                text = self.decrypt_w_uc(message)
                 self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
-                    "first_name"] + ": " + message.text)
+                    "first_name"] + ": " + text)
             # The message listbox will automatically look at the last/"most recent" message
             self.msg_list.see(END)
             # We no longer need to change the conversation
@@ -426,43 +424,51 @@ class GUI(Frame):
                     msg_author = self.name
                 else:
                     name = self.client._fetchInfo(msg_author)[msg_author]["first_name"]
-                clean_text = ""
-                if "Q_Q" in msg_object.text:  # to be decrypted
-                    key, ciphertext = msg_object.text.split("Q_Q")
-                    clean_text = Encrypt.decrypt(ciphertext, int(key))
-                else:  # no decrypting needed
-                    clean_text = unicodedata.normalize('NFKD', msg_object.text).encode('ascii', 'ignore')
-                new_last_message = name + ": " + clean_text
+                text = self.decrypt_w_uc(msg_object)
+                new_last_message = name + ": " + text
                 if (last_message != new_last_message):
                     # This is checking if were updating the current convo or refreshing convo
                     if (name + ": " in last_message):
                         while (self.client.most_recent_messages_queue.empty() is not True):
                             message = self.client.most_recent_messages_queue.get()
-                            clean_text = ""
-                            if "Q_Q" in message.text:  # to be decrypted
-                                key, ciphertext = message.text.split("Q_Q")
-                                clean_text = Encrypt.decrypt(ciphertext, int(key))
-                            else:  # no decrypting needed
-                                clean_text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
-
+                            text = self.decrypt_w_uc(message)
                             self.msg_list.insert(END, self.client._fetchInfo(message.author)[message.author][
-                                "first_name"] + ": " + clean_text)
+                                "first_name"] + ": " + text)
                             self.msg_list.see(END)
                     else:
                         messages = self.client.fetchThreadMessages(self.currentUser.uid)
                         self.msg_list.delete(0, END)
                         for message in messages:
-                            clean_text = ""
-                            if "Q_Q" in message.text:  # to be decrypted
-                                key, ciphertext = message.text.split("Q_Q")
-                                clean_text = Encrypt.decrypt(ciphertext, int(key))
-                            else:  # no decrypting needed
-                                clean_text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
-
+                            text = self.decrypt_w_uc(message)
                             self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
-                                "first_name"] + ": " + clean_text)
+                                "first_name"] + ": " + text)
                         self.msg_list.see(END)
                         self.client.most_recent_message = messages[0]
+
+    def decrypt_w_uc(self, message):
+        '''
+        Decrypt with unicode character check - will decrypt when necessary, 
+        and then convert unicode to ascii so TCL won't freak out
+
+        Input: message -> fbchat.models.Message, Message object
+        Output: clean_text -> String
+        '''
+        clean_text = ""
+        if "Q_Q" in message.text:  # to be decrypted
+            key, ciphertext = message.text.split("Q_Q")
+            clean_text = Encrypt.decrypt(ciphertext, int(key))
+        # now we do unicode and emoji 
+        clean_clean_text = ""
+        for character in clean_text:
+            print(type(character))
+            # if character not in emoji.UNICODE_EMOJI:
+            if type(character) is unicode:
+                clean_clean_text += unicodedata.normalize('NFKD', character).encode('ascii', 'replace')
+            else:
+                clean_clean_text += character
+
+
+        return clean_clean_text
 
     def exit(self):
         '''

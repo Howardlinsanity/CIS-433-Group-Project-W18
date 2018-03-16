@@ -24,11 +24,15 @@ def encrypt(plaintext, key):
     ciphertext = ""
     for char in plaintext:
         oNum = ord(char)
-        if oNum > 255:  # not a ASCII character
+        if oNum > 127:  # not a ASCII character
             new_char = char
         else:
-            new_char = chr(oNum + key)
-
+            if(oNum + key > 127): # If value is too high or too low, we wrap around. The math checks out, trust me - Howard Lin
+                new_char = chr(oNum + key - 128)
+            elif(oNum + key < 0):
+                new_char = chr(oNum + key + 128)
+            else:
+                new_char = chr(oNum + key)
         ciphertext += new_char
 
     return ciphertext
