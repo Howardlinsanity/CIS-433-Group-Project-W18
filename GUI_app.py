@@ -374,10 +374,9 @@ class GUI(Frame):
         '''
         plaintext = self.entry_field.get()
         key = randint(-60, 60)
-        ciphertext = Encrypt.encrypt(plaintext, 29)
-        ciphertext = "{}Q_Q{}".format(29, ciphertext)
+        ciphertext = Encrypt.encrypt(plaintext, key)
+        ciphertext = "{}Q_Q{}".format(key, ciphertext)
         message = Message(text=unicode(ciphertext, "ascii"))
-        print("IM IN THE SEND FUNCTION: ciphertext stuff:", ciphertext, message)
         self.client.send(message, self.currentUser.uid)
         self.entry_field.delete(0, END)
         self.client.most_recent_message = message
@@ -398,8 +397,7 @@ class GUI(Frame):
         '''
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
-        if(self.client.most_recent_message is not None):
-            print("IM IN THE CLIENT", self.client.most_recent_message.text)    
+        if(self.client.most_recent_message is not None):  
 
         if (self.changingConvo): # we are changing the conversation/switching users
             print("[updateConversation] we are changing conversation")
@@ -460,7 +458,6 @@ class GUI(Frame):
         # now we do unicode and emoji 
         clean_clean_text = ""
         for character in clean_text:
-            print(type(character))
             # if character not in emoji.UNICODE_EMOJI:
             if type(character) is unicode:
                 clean_clean_text += unicodedata.normalize('NFKD', character).encode('ascii', 'replace')
