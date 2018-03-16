@@ -397,8 +397,6 @@ class GUI(Frame):
         '''
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
         '''
-        if(self.client.most_recent_message is not None):  
-
         if (self.changingConvo): # we are changing the conversation/switching users
             print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
