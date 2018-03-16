@@ -399,7 +399,6 @@ class GUI(Frame):
         '''
 
         if (self.changingConvo):
-
             print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
@@ -408,10 +407,7 @@ class GUI(Frame):
                     key, ciphertext = message.text.split("Q_Q")
                     message.text = Encrypt.decrypt(ciphertext, int(key))
                 else:  # no decrypting needed
-                    message.text = unicodedata.normalize('NFKD', message.text).encode('ascii','ignore')
-                print message.text
-                print type(message.text)
-                #TODO remove non normal chars
+                    message.text = unicodedata.normalize('NFKD', message.text).encode('ascii', 'ignore')
                 self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
                     "first_name"] + ": " + message.text)
             self.msg_list.see(END)
@@ -426,16 +422,12 @@ class GUI(Frame):
                     msg_author = self.name
                 else:
                     name = self.client._fetchInfo(msg_author)[msg_author]["first_name"]
-
                 new_last_message = name + ": " + msg_object.text
                 if (last_message != new_last_message):
                     # This is checking if were updating the current convo or refreshing convo
                     if (name + ": " in last_message):
                         while (self.client.most_recent_messages_queue.empty() is not True):
                             message = self.client.most_recent_messages_queue.get()
-                            if "Q_Q" in message.text:
-                                key, ciphertext = message.text.split("Q_Q")
-                                message.text = Encrypt.decrypt(ciphertext, int(key))
 
                             self.msg_list.insert(END, self.client._fetchInfo(message.author)[message.author][
                                 "first_name"] + ": " + message.text)
