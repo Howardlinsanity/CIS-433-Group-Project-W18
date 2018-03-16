@@ -7,6 +7,8 @@ import tkMessageBox
 import tkFileDialog
 # encryption
 import Encrypt
+import unicodedata
+
 from ttk import Style, Button, Label, Entry, Progressbar, Checkbutton
 from Tkinter import Tk, Frame, RIGHT, BOTH, RAISED
 from Tkinter import TOP, X, N, LEFT
@@ -402,9 +404,14 @@ class GUI(Frame):
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
             self.msg_list.delete(0, END)
             for message in messages:
-                if "Q_Q" in message.text:
+                if "Q_Q" in message.text:  # to be decrypted
                     key, ciphertext = message.text.split("Q_Q")
                     message.text = Encrypt.decrypt(ciphertext, int(key))
+                else:  # no decrypting needed
+                    message.text = unicodedata.normalize('NFKD', message.text).encode('ascii','ignore')
+                print message.text
+                print type(message.text)
+                #TODO remove non normal chars
                 self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author][
                     "first_name"] + ": " + message.text)
             self.msg_list.see(END)
@@ -508,6 +515,17 @@ def initiate_tk_loop(root, ex):
     '''
     root.after(2000, tk_loop, root, ex)
 
+def removeEmoji(msg):
+    """
+    removes non ASCII chars
+    :param msg:
+    :return: new_msg with emjoy char removed
+    """
+    new_msg = ""
+    for ch in msg:
+        pass
+
+    return new_msg
 
 if __name__ == "__main__":
 
