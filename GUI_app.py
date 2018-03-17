@@ -311,7 +311,7 @@ class GUI(Frame):
         self.msg_list.pack(side=RIGHT)
 
         self.entry_field = Entry(self.right_frame, textvariable=self.my_msg)
-        self.passwordEntry.bind("<Return>", self.start)
+        self.entry_field.bind("<Return>", self.send)
         self.send_button = Button(self.right_frame, text="Send", command=self.send)
         self.entry_field.pack(side="top", fill=X, padx=5, pady=5)
         self.send_button.pack(side="top")
@@ -369,7 +369,7 @@ class GUI(Frame):
         #     self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
         # self.msg_list.see(END)
 
-    def send(self, _):
+    def send(self, _=""):
         '''
         Send messages, will send whatever is in the message field and then clear it
         '''
