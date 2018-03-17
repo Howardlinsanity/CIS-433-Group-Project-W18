@@ -78,7 +78,7 @@ class GuiClient(client.Client):
 
     def stopListening(self):
         """Cleans up the variables from startListening"""
-        print("Logging off... (This might take a little bit, we swear we're not stealing your info)")
+        print("Logging off...")
         self.listening = False
         self.sticky, self.pool = (None, None)
 
