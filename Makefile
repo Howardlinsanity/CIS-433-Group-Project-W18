@@ -40,7 +40,6 @@ freeze:
 	(pip freeze | grep -v "pkg-resources" > requirements.txt) || true
 
 run:    env
-	$(INVENV) mongod --dbpath ./data/db &
 	($(INVENV) python2 GUI_app.py) ||  true
 
 jamie: env
