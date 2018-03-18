@@ -454,6 +454,8 @@ class GUI(Frame):
         if "Q_Q" in message.text:  # to be decrypted
             key, ciphertext = message.text.split("Q_Q")
             clean_text = Encrypt.decrypt(ciphertext, int(key))
+        else:
+            clean_text = message.text
         # now we do unicode and emoji 
         clean_clean_text = ""
         for character in clean_text:
