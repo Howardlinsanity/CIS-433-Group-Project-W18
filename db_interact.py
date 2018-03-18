@@ -1,6 +1,9 @@
 from pymongo import MongoClient
 
-"""-------- ME FUNCTIONS ----------"""
+"""
+-------- DATABASE FUNCTIONS ----------
+this code is currently unused in the project.
+"""
 
 def setMeUp(my_id, my_pub_key, my_priv_key):
         client = MongoClient()

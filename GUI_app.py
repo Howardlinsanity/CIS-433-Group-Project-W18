@@ -1,36 +1,28 @@
-import os
-import time
-import sys
+
 import threading
 import requests
-import tkMessageBox
-import tkFileDialog
+
 # encryption
 import Encrypt
 import unicodedata
-import emoji
 
 from ttk import Style, Button, Label, Entry, Progressbar, Checkbutton
 from Tkinter import Tk, Frame, RIGHT, BOTH, RAISED
 from Tkinter import TOP, X, N, LEFT
 from Tkinter import END, Listbox, MULTIPLE
 from Tkinter import Toplevel, DISABLED
-from Tkinter import ACTIVE, NORMAL
+
 from Tkinter import StringVar, Scrollbar
 from multiprocessing import Queue
-from uuid import uuid1
 from random import choice, randint
 from fbchat import log, client
-from fbchat.models import *
-from fbchat.utils import *
 from fbchat.graphql import *
-import db_interact as db
 
 
 # Wrapper for the client class just in case we need to modify client to make it work
-class gui_client(client.Client):
+class GuiClient(client.Client):
     def __init__(self, email, password, user_agent=None, max_tries=5, session_cookies=None, logging_level=logging.INFO):
-        '''
+        """
         Initializes and logs in the client
 
         :param email: Facebook `email`, `id` or `phone number`
@@ -43,7 +35,7 @@ class gui_client(client.Client):
         :type session_cookies: dict
         :type logging_level: int
         :raises: FBchatException on failed login
-        '''
+        """
 
         self.sticky, self.pool = (None, None)
         self._session = requests.session()
@@ -86,7 +78,7 @@ class gui_client(client.Client):
 
     def stopListening(self):
         """Cleans up the variables from startListening"""
-        print("Logging off... (This might take a little bit, we swear we're not stealing your info)")
+        print("Logging off...")
         self.listening = False
         self.sticky, self.pool = (None, None)
 
@@ -107,9 +99,9 @@ class gui_client(client.Client):
 
 
 class GUI(Frame):
-    '''
+    """
     This is the root window
-    '''
+    """
 
     def __init__(self, parent, client):
         self.queue = Queue()
@@ -128,16 +120,16 @@ class GUI(Frame):
         self.loginScreen()
 
     def centerWindow(self, notself=None):
-        '''
+        """
         This centers the window into place
         if notself is set, then it centers
         the notself window
 
         @param:
             notself - TKobject
-        '''
+        """
 
-        if notself != None:  # notself is primarly for progressbar
+        if notself is not None:  # notself is primarly for progressbar
             sw = self.parent.winfo_screenwidth()
             sh = self.parent.winfo_screenheight()
             x = (sw - self.w / 2) / 2
@@ -151,10 +143,10 @@ class GUI(Frame):
             self.parent.geometry('%dx%d+%d+%d' % (self.w, self.h, x, y))
 
     def startWindow(self):
-        '''
+        """
         This method starts/creates the window for
         the UI
-        '''
+        """
         Frame.__init__(self, self.parent, background="white")
         self.style = Style()
         self.style.theme_use("default")
@@ -166,20 +158,20 @@ class GUI(Frame):
         self.initialized = True
 
     def resetWindow(self):
-        '''
+        """
         Resets the window
-        '''
+        """
         if (self.initialized):
             self.destroy()
-        if (self.loadWindow != None):
+        if (self.loadWindow is not None):
             self.loadWindow.destroy()
 
         self.startWindow()
 
     def loginScreen(self):
-        '''
+        """
         First screen that user will see, will require Facebook credentials to be inputted
-        '''
+        """
 
         # Resetting window
         self.h = 150
@@ -223,10 +215,10 @@ class GUI(Frame):
         self.loginButton.pack(side=RIGHT)
         # Done with bottom buttons
 
-    def start(self, opt=""):
-        '''
+    def start(self):
+        """
         Initiates login, starts loading screen.
-        '''
+        """
         thread1 = ThreadedTask(self.queue, self.login)
         thread2 = ThreadedTask(self.queue, self.loadingScreen)
         thread2.start()
@@ -234,12 +226,11 @@ class GUI(Frame):
 
         self.checkThread(thread1, self.chatUI)
 
-
     def loadingScreen(self):
-        '''
+        """
         This starts the loading screen
         and disables all buttons
-        '''
+        """
         for i in self.winfo_children():
             if Button == type(i):
                 i.configure(state=DISABLED)
@@ -247,7 +238,7 @@ class GUI(Frame):
         self.loadWindow = Toplevel(self.parent)
         loadingstring = "Logging in..."
         loadinglabel = Label(self.loadWindow, text=loadingstring, background="white")
-        progressbar = Progressbar(self.loadWindow, orient="horizontal", \
+        progressbar = Progressbar(self.loadWindow, orient="horizontal",
                                   length=300, mode="indeterminate")
         progressbar.pack(pady=self.h / 10)
 
@@ -258,9 +249,9 @@ class GUI(Frame):
         progressbar.start()
 
     def login(self):
-        '''
+        """
         Login with the inputted credentials from the loginScreen
-        '''
+        """
 
         if(self.client is not None):
             if(self.client.isLoggedIn()):
@@ -269,21 +260,21 @@ class GUI(Frame):
         self.password = self.passwordEntry.get()
 
         # This will log into Facebook with the given credentials
-        self.client = gui_client(self.email, self.password)
+        self.client = GuiClient(self.email, self.password)
         print(self.client._fetchInfo(self.client.uid)[self.client.uid].get('first_name'))
         self.thread3 = ThreadedTask(self.queue, self.listen)
         self.thread3.start()
 
     def listen(self):
-        '''
+        """
         We start the listening loop
-        '''
+        """
         self.client.listen()
 
     def chatUI(self):
-        '''
+        """
         Chat GUI page
-        '''
+        """
         self.h = 350
         self.w = 700
         self.resetWindow()
@@ -295,12 +286,10 @@ class GUI(Frame):
         self.messages_frame = Frame(self.right_frame)
         self.messages_frame.pack(side=TOP)
 
-
         self.my_msg = StringVar()  # For messages to be sent.
         self.my_msg.set("")
 
         self.msg_scrollbar = Scrollbar(self.messages_frame)  # Navigate through past messages
-
 
         # Following will contain the messages
 
@@ -359,20 +348,13 @@ class GUI(Frame):
             self.usr_list.insert(END, " " + user.name)
 
         # By default I would just take the first conversation
-        self.currentUser = self.users[0]
+        self.currentUser = self.users[0]  # TODO: fix IndexOutOfRange Error when searched for a string not found
         self.usr_search_bar.delete(0, END)
 
-        # print(self.currentUser)
-        # messages = self.client.fetchThreadMessages(self.currentUser.uid)
-        # self.client.most_recent_message = messages[0]
-        # for message in messages:
-        #     self.msg_list.insert(0, self.client._fetchInfo(message.author)[message.author]["first_name"] + ": " + message.text)
-        # self.msg_list.see(END)
-
     def send(self, _=""):
-        '''
+        """
         Send messages, will send whatever is in the message field and then clear it
-        '''
+        """
         plaintext = self.entry_field.get()
         key = randint(-60, 60)
         ciphertext = Encrypt.encrypt(plaintext, key)
@@ -385,9 +367,9 @@ class GUI(Frame):
         self.msg_list.see(END)
 
     def changeConvo(self, param):
-        '''
+        """
         When you click on another user in the chat we update the page
-        '''
+        """
         print("CHANGING CONVO")
         selectionIndex = self.usr_list.curselection()
         self.currentUser = self.users[selectionIndex[0]]
@@ -395,9 +377,9 @@ class GUI(Frame):
         self.updateConversation()
 
     def updateConversation(self):
-        '''
+        """
         Clear the conversation box, reupdate with new conversation, pings facebook server if they got anything
-        '''
+        """
         if (self.changingConvo): # we are changing the conversation/switching users
             print("[updateConversation] we are changing conversation")
             messages = self.client.fetchThreadMessages(self.currentUser.uid)
@@ -443,13 +425,13 @@ class GUI(Frame):
                         self.client.most_recent_message = messages[0]
 
     def decrypt_w_uc(self, message):
-        '''
-        Decrypt with unicode character check - will decrypt when necessary, 
+        """
+        Decrypt with unicode character check - will decrypt when necessary,
         and then convert unicode to ascii so TCL won't freak out
 
         Input: message -> fbchat.models.Message, Message object
         Output: clean_text -> String
-        '''
+        """
         clean_text = ""
         if "Q_Q" in message.text:  # to be decrypted
             key, ciphertext = message.text.split("Q_Q")
@@ -465,20 +447,18 @@ class GUI(Frame):
             else:
                 clean_clean_text += character
 
-
         return clean_clean_text
 
     def exit(self):
-        '''
+        """
         Stops listening and ends GUI
-        '''
+        """
         self.client.stopListening()
         self.parent.destroy()
 
-
     def checkThread(self, thread, function):
 
-        '''
+        """
         This function checks to see if
         the given thread is dead, if it
         is not, it recalls a new checkThread.
@@ -488,7 +468,7 @@ class GUI(Frame):
         @param:
             thread   - ThreadedTask
             functoin - a function
-        '''
+        """
         if thread.is_alive():
             self.parent.after(1000, lambda: self.checkThread(thread, function))
         else:
@@ -496,9 +476,9 @@ class GUI(Frame):
 
 
 class ThreadedTask(threading.Thread):
-    '''
+    """
     Used for creating a threaded task
-    '''
+    """
 
     def __init__(self, queue, function):
         """
@@ -520,19 +500,20 @@ class ThreadedTask(threading.Thread):
 
 
 def tk_loop(root, ex):
-    '''
+    """
     Checks for messages every half a second
-    '''
+    """
     if (ex.msg_list is not None):
         ex.updateConversation()
     root.after(2000, tk_loop, root, ex)
 
 
 def initiate_tk_loop(root, ex):
-    '''
+    """
     I honestly don't know how to thread this other than doing this terrible piece of code
-    '''
+    """
     root.after(2000, tk_loop, root, ex)
+
 
 def removeEmoji(msg):
     """
