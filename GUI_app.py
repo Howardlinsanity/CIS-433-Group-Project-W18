@@ -215,7 +215,7 @@ class GUI(Frame):
         self.loginButton.pack(side=RIGHT)
         # Done with bottom buttons
 
-    def start(self):
+    def start(self, opt=""):
         """
         Initiates login, starts loading screen.
         """
